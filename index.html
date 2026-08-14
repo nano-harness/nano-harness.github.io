@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nano — minimal agent loops & harness engineering</title>
+<meta name="description" content="The nano series: minimal, readable implementations of agent loops and harness engineering — nano-symphony, nano-agent, nano-cloud. Companion to the harness-101 course.">
+<style>
+  :root {
+    --bg: #0b0d10;
+    --fg: #e6e8eb;
+    --muted: #9aa4b0;
+    --accent: #6ee7b7;
+    --card: #14181d;
+    --border: #232a32;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 96px 0 64px; }
+  .kicker {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--accent); font-size: 14px; letter-spacing: .12em; text-transform: uppercase;
+  }
+  h1 { font-size: 44px; line-height: 1.15; margin: 16px 0 20px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 18px; max-width: 640px; }
+  h2 { font-size: 22px; margin: 64px 0 20px; letter-spacing: -0.01em; }
+  .grid { display: grid; gap: 16px; }
+  .card {
+    display: block; background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; text-decoration: none; color: inherit;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card .name {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 17px; color: var(--accent);
+  }
+  .card .lang { float: right; color: var(--muted); font-size: 13px; }
+  .card p { color: var(--muted); margin-top: 8px; font-size: 15px; }
+  .course {
+    margin-top: 20px; border: 1px dashed var(--border); border-radius: 12px;
+    padding: 24px; color: var(--muted); font-size: 15px;
+  }
+  .course a { color: var(--accent); text-decoration: none; }
+  .course a:hover { text-decoration: underline; }
+  footer { margin: 80px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); padding-top: 24px; }
+  footer a { color: var(--muted); }
+  code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .92em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">the nano series</div>
+    <h1>Agent loops &amp; harness engineering,<br>small enough to read in an evening.</h1>
+    <p class="sub">
+      Every idea that reshapes AI engineering eventually gets a minimal implementation you can hold in your head.
+      The nano series is that for agent loops and harness engineering — real, working systems, kept deliberately small.
+    </p>
+  </header>
+
+  <h2>The projects</h2>
+  <div class="grid">
+    <a class="card" href="https://github.com/nano-harness/nano-symphony">
+      <span class="lang">TypeScript · Bun</span>
+      <div class="name">nano-symphony</div>
+      <p>A lightweight orchestration service for running coding agents at scale — plan runs, issue-driven workflows, multi-agent adapters.</p>
+    </a>
+    <a class="card" href="https://github.com/nano-harness/nano-agent">
+      <span class="lang">Go</span>
+      <div class="name">nano-agent</div>
+      <p>A minimal AI coding assistant — the agent loop, tools, and context management without the framework bloat.</p>
+    </a>
+    <a class="card" href="https://github.com/nano-harness/nano-cloud">
+      <span class="lang">Go</span>
+      <div class="name">nano-cloud</div>
+      <p>Distributed execution for agents — a gateway/worker architecture for running agent fleets across machines.</p>
+    </a>
+  </div>
+
+  <h2>Learn the ideas</h2>
+  <div class="course">
+    The nano series pairs with <a href="https://github.com/albert-lv/harness-101"><strong>harness-101</strong></a>,
+    a hands-on course on building AI agents and harness engineering from scratch.
+    Read the course to understand the ideas; read the nano sources to see them running.
+  </div>
+
+  <footer>
+    Maintained by <a href="https://github.com/albert-lv">@albert-lv</a> ·
+    <a href="https://github.com/nano-harness">github.com/nano-harness</a>
+  </footer>
+</div>
+</body>
+</html>
