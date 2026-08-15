@@ -236,8 +236,9 @@
           <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f1-single-agent-loop">F1 loop</a>
           <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f2-explicit-tool-contract">F2 tools</a>
           <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f3-context-budgeting">F3 context</a>
-          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f6-least-privilege-tooling">F6 sandbox</a>
-          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f11-config-driven-behavior">F11 config</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f4-knowing-when-to-stop">F4 stop</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f6-permission-models">F6 permissions</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f8-plan--goal-modes">F8 plan/goal</a>
         </div>
         <div class="links">
           <a href="https://github.com/nano-harness/nano-agent/tree/main/docs">docs →</a>
@@ -251,8 +252,8 @@
         <p class="zh">轻量级 agent 编排服务——把 coding agent 跑在可追踪的 issue 上：DAG plan run、人工审批门禁、成本预算和 Web 仪表盘。</p>
         <div class="tags">
           <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f7-human-in-the-loop-gates">F7 HITL</a>
-          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f8-observable-by-default">F8 observability</a>
-          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-reproducible-runs">F9 reproducible</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f8-plan--goal-modes">F8 plan runs</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-workspace--artifacts-management">F9 workspace</a>
           <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f10-composable-agents">F10 composable</a>
         </div>
         <div class="links">
@@ -266,7 +267,7 @@
         <p class="en">Distributed execution for agents — a gateway/worker architecture that runs agent fleets in isolated Docker runtimes, with pairing-based onboarding and an admin console.</p>
         <p class="zh">agent 的分布式执行——gateway/worker 架构，在隔离的 Docker 运行时里运行 agent 集群，配对式接入和管理控制台。</p>
         <div class="tags">
-          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-reproducible-runs">F9 reproducible</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-workspace--artifacts-management">F9 workspace</a>
           <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f10-composable-agents">F10 composable</a>
         </div>
         <div class="links">
@@ -327,33 +328,33 @@
         <tr><td class="f">F3 · Context Budgeting</td>
           <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f3-context-budgeting">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-3">starter</a></td>
           <td><a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/context_compression.go">nano-agent: model-aware context compression</a></td></tr>
-        <tr><td class="f">F4 · Failure-First Design</td>
-          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f4-failure-first-design">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-4">starter</a></td>
-          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/NANO.md">nano-agent: retry / fallback / circuit-breaker</a></td></tr>
-        <tr><td class="f">F5 · Graceful Degradation</td>
-          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f5-graceful-degradation">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-5">starter</a></td>
-          <td><a href="https://github.com/nano-harness/nano-agent/tree/main/pkg/llm">nano-agent: multi-provider fallback &amp; circuit breakers</a></td></tr>
-        <tr><td class="f">F6 · Least-Privilege Tooling</td>
-          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f6-least-privilege-tooling">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-6">starter</a></td>
-          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/SANDBOX_DESIGN.md">nano-agent: sandbox design</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/FIREWALL.md">firewall</a></td></tr>
+        <tr><td class="f">F4 · Knowing When to Stop</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f4-knowing-when-to-stop">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-4">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/turn_policy.go">nano-agent: turn termination policy</a></td></tr>
+        <tr><td class="f">F5 · Failure-First Design &amp; Graceful Degradation</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f5-failure-first-design--graceful-degradation">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-5">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/NANO.md">nano-agent: retry / fallback / circuit-breaker</a> · <a href="https://github.com/nano-harness/nano-agent/tree/main/pkg/llm">multi-provider fallback</a></td></tr>
+        <tr><td class="f">F6 · Permission Models</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f6-permission-models">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-6">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/development/PERMISSION_POLICY.md">nano-agent: permission policy</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/development/PERMISSION_AUTO_APPROVAL.md">auto-approval</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/SANDBOX_DESIGN.md">sandbox design</a></td></tr>
         <tr><td class="f">F7 · Human-in-the-Loop Gates</td>
           <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f7-human-in-the-loop-gates">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-7">starter</a></td>
-          <td><a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/plan-authoring.md">nano-symphony: plan approval gates</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/PLAN_MODE.md">plan mode</a></td></tr>
-        <tr><td class="f">F8 · Observable by Default</td>
-          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f8-observable-by-default">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-8">starter</a></td>
-          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/development/EVENT_SCHEMA.md">nano-agent: event schema</a> · <a href="https://github.com/nano-harness/nano-symphony">nano-symphony: metrics &amp; dashboard</a></td></tr>
-        <tr><td class="f">F9 · Reproducible Runs</td>
-          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-reproducible-runs">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-9">starter</a></td>
-          <td><a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/WORKFLOW-reference.md">nano-symphony: workflow templates</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/CHECKPOINTING.md">checkpointing</a></td></tr>
+          <td><a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/plan-authoring.md">nano-symphony: plan approval gates</a></td></tr>
+        <tr><td class="f">F8 · Plan &amp; Goal Modes</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f8-plan--goal-modes">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-8">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/PLAN_MODE.md">nano-agent: plan mode</a> · <a href="https://github.com/nano-harness/nano-symphony">nano-symphony: plan runs</a></td></tr>
+        <tr><td class="f">F9 · Workspace &amp; Artifacts Management</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-workspace--artifacts-management">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-9">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-symphony">nano-symphony: workspaces &amp; unified artifacts</a></td></tr>
         <tr><td class="f">F10 · Composable Agents</td>
           <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f10-composable-agents">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-10">starter</a></td>
           <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/MAILBOX.md">mailbox</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/SWARM.md">swarm</a> · <a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/adr/001-multi-agent-roles-and-shared-contract.md">roles ADR</a></td></tr>
-        <tr><td class="f">F11 · Config-Driven Behavior</td>
-          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f11-config-driven-behavior">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-11">starter</a></td>
-          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/configuration.md">nano-agent: configuration</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/config-deep-merge.md">deep merge</a></td></tr>
-        <tr><td class="f">F12 · Continuous Evaluation</td>
-          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f12-continuous-evaluation">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-12">starter</a></td>
-          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/swe_bench_test/README.md">nano-agent: SWE-bench evaluation</a></td></tr>
+        <tr><td class="f">F11 · Config-Driven &amp; Reproducible Runs</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f11-config-driven--reproducible-runs">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-11">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/configuration.md">nano-agent: configuration</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/CHECKPOINTING.md">checkpointing</a> · <a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/WORKFLOW-reference.md">workflow templates</a></td></tr>
+        <tr><td class="f">F12 · Observability &amp; Continuous Evaluation</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f12-observability--continuous-evaluation">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-12">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/development/EVENT_SCHEMA.md">nano-agent: event schema</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/swe_bench_test/README.md">SWE-bench evaluation</a> · <a href="https://github.com/nano-harness/nano-symphony">nano-symphony: metrics &amp; dashboard</a></td></tr>
       </tbody>
     </table>
   </section>
@@ -364,10 +365,10 @@
     <ol class="path">
       <li class="en">Work through the course prep and F1–F3 while reading <a href="https://github.com/nano-harness/nano-agent">nano-agent</a>'s core: <code>pkg/agent</code> is the loop the course asks you to write, at production scale.</li>
       <li class="zh">完成课程准备和 F1–F3，同时对照读 <a href="https://github.com/nano-harness/nano-agent">nano-agent</a> 的核心：<code>pkg/agent</code> 就是课程让你手写的那个 loop 的生产级版本。</li>
-      <li class="en">F4–F6: failure, degradation, and least privilege — study <code>pkg/llm</code> and the sandbox docs, then run nano-agent in its strictest permission mode and watch it refuse things.</li>
-      <li class="zh">F4–F6：失败、降级与最小权限——读 <code>pkg/llm</code> 和沙箱文档，然后把 nano-agent 开到最严权限模式，看它如何拒绝操作。</li>
-      <li class="en">F7–F9: graduate to <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a> — approval gates, observability, reproducible workflows are orchestrator concerns, not agent concerns.</li>
-      <li class="zh">F7–F9：进阶到 <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a>——审批门禁、可观测性、可复现工作流是编排层的关注点，而不是 agent 本身。</li>
+      <li class="en">F4–F6: termination, failure, and permissions — study <code>pkg/agent/turn_policy.go</code> to see how nano-agent decides a run is done (or stuck), then run it in its strictest permission mode and watch it refuse things.</li>
+      <li class="zh">F4–F6：终止判定、失败处理与权限模型——读 <code>pkg/agent/turn_policy.go</code> 看 nano-agent 如何判定任务完成（或陷入循环），然后把权限开到最严，看它如何拒绝操作。</li>
+      <li class="en">F7–F9: graduate to <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a> — approval gates, plan runs, and isolated workspaces with durable artifacts are orchestrator concerns, not agent concerns.</li>
+      <li class="zh">F7–F9：进阶到 <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a>——审批门禁、plan run、隔离工作区与持久 artifacts 是编排层的关注点，而不是 agent 本身。</li>
       <li class="en">F10–F12: mailbox, swarm, and evaluation — then the capstone: deploy your own fleet on <a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a>.</li>
       <li class="zh">F10–F12：mailbox、swarm 与评估——最后是毕业项目：在 <a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a> 上部署你自己的 agent 集群。</li>
     </ol>
