@@ -5,264 +5,373 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>nano — minimal agent loops & harness engineering</title>
 <meta name="description" content="The nano series: minimal, readable implementations of agent loops and harness engineering — nano-symphony, nano-agent, nano-cloud. The running companion to the harness-101 course.">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="apple-touch-icon" href="logo-512.png">
 <style>
   :root {
-    --bg: #0b0d10; --fg: #e6e8eb; --muted: #9aa4b0;
-    --accent: #6ee7b7; --accent2: #7dd3fc;
-    --card: #14181d; --border: #232a32;
+    --bg: #07090c; --fg: #e6e8eb; --muted: #8b95a3;
+    --accent: #6ee7b7; --accent2: #7dd3fc; --accent3: #c4b5fd;
+    --card: rgba(20, 24, 29, .72); --border: #232a32;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     background: var(--bg); color: var(--fg);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    line-height: 1.6;
+    line-height: 1.6; overflow-x: hidden;
   }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
-  header { padding: 88px 0 56px; position: relative; }
+  /* --- background: grid + glows --- */
+  .bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+  .bg::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(110,231,183,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(110,231,183,.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 75%);
+    animation: gridDrift 24s linear infinite;
+  }
+  @keyframes gridDrift { to { background-position: 44px 44px, 44px 44px; } }
+  .glow { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .16; }
+  .glow.g1 { width: 560px; height: 560px; background: var(--accent); top: -220px; left: -120px; animation: float1 14s ease-in-out infinite; }
+  .glow.g2 { width: 480px; height: 480px; background: var(--accent2); top: -160px; right: -140px; animation: float2 18s ease-in-out infinite; }
+  .glow.g3 { width: 420px; height: 420px; background: var(--accent3); top: 480px; left: 40%; opacity: .10; animation: float1 22s ease-in-out infinite reverse; }
+  @keyframes float1 { 50% { transform: translate(60px, 40px) scale(1.08); } }
+  @keyframes float2 { 50% { transform: translate(-70px, 50px) scale(1.12); } }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 96px 0 40px; position: relative; }
   .kicker {
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    color: var(--accent); font-size: 14px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); font-size: 13.5px; letter-spacing: .18em; text-transform: uppercase;
   }
-  h1 { font-size: 42px; line-height: 1.15; margin: 16px 0 20px; letter-spacing: -0.02em; }
-  .sub { color: var(--muted); font-size: 18px; max-width: 680px; }
-  .cta { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand img { width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 0 20px rgba(110,231,183,.25); }
+  .kicker::before { content: "● "; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  h1 {
+    font-size: 52px; line-height: 1.12; margin: 18px 0 22px; letter-spacing: -0.03em; font-weight: 800;
+    background: linear-gradient(100deg, #fff 20%, var(--accent) 45%, var(--accent2) 65%, var(--accent3) 90%);
+    background-size: 220% auto;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shine 7s ease-in-out infinite;
+  }
+  @keyframes shine { 50% { background-position: 100% center; } }
+  .sub { color: var(--muted); font-size: 18px; max-width: 700px; }
+  .sub a { color: var(--accent); text-decoration: none; }
+  .cta { margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap; }
   .btn {
-    display: inline-block; padding: 10px 20px; border-radius: 8px; text-decoration: none;
+    display: inline-block; padding: 11px 22px; border-radius: 9px; text-decoration: none;
     font-size: 15px; border: 1px solid var(--border); color: var(--fg);
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
   }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #06281c; font-weight: 600; }
-  .btn:hover { border-color: var(--accent); }
-  .btn.primary:hover { filter: brightness(1.1); }
+  .btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .btn.primary {
+    background: linear-gradient(120deg, var(--accent), #34d399); border: none; color: #05281b; font-weight: 700;
+    box-shadow: 0 0 24px rgba(110,231,183,.35);
+  }
+  .btn.primary:hover { box-shadow: 0 0 36px rgba(110,231,183,.55); }
   .lang-toggle {
-    position: absolute; top: 24px; right: 24px; font-size: 13px;
+    position: absolute; top: 28px; right: 24px; font-size: 13px; z-index: 2;
     color: var(--muted); border: 1px solid var(--border); border-radius: 6px;
-    padding: 4px 10px; cursor: pointer; background: none;
+    padding: 4px 10px; cursor: pointer; background: rgba(20,24,29,.6); backdrop-filter: blur(6px);
   }
   .lang-toggle:hover { color: var(--fg); border-color: var(--accent); }
-  h2 { font-size: 24px; margin: 72px 0 8px; letter-spacing: -0.01em; }
-  .h2-sub { color: var(--muted); font-size: 15px; margin-bottom: 24px; max-width: 720px; }
+
+  /* --- terminal --- */
+  .term {
+    margin: 48px 0 8px; border-radius: 14px; border: 1px solid var(--border);
+    background: rgba(10, 13, 17, .88); backdrop-filter: blur(8px);
+    box-shadow: 0 24px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(110,231,183,.06), 0 0 44px rgba(110,231,183,.07);
+    overflow: hidden;
+  }
+  .term-bar {
+    display: flex; align-items: center; gap: 8px; padding: 12px 16px;
+    border-bottom: 1px solid var(--border); background: rgba(255,255,255,.02);
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+  .term-title {
+    margin-left: 10px; font-size: 12.5px; color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .term-body {
+    padding: 20px 22px; min-height: 238px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 14px; line-height: 1.85; white-space: pre-wrap;
+  }
+  .t-cmd { color: #fff; } .t-prompt { color: var(--accent); }
+  .t-think { color: #fbbf24; } .t-tool { color: var(--accent2); }
+  .t-ok { color: var(--accent); } .t-dim { color: var(--muted); }
+  .cursor { display: inline-block; width: 8px; height: 17px; background: var(--accent); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* --- sections --- */
+  section { margin-top: 96px; }
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+  h2 { font-size: 27px; margin-bottom: 10px; letter-spacing: -0.015em; }
+  h2 .n {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--accent); font-size: 15px; vertical-align: 6px; margin-right: 10px;
+  }
+  .h2-sub { color: var(--muted); font-size: 15.5px; margin-bottom: 26px; max-width: 720px; }
   .grid { display: grid; gap: 16px; }
   .card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 24px;
+    background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(8px);
+    border-radius: 14px; padding: 26px; position: relative; overflow: hidden;
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
   }
+  .card::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(110,231,183,.5), transparent);
+    opacity: 0; transition: opacity .2s ease;
+  }
+  .card:hover {
+    transform: translateY(-4px); border-color: rgba(110,231,183,.4);
+    box-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 32px rgba(110,231,183,.08);
+  }
+  .card:hover::before { opacity: 1; }
   .card .name {
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 17px; color: var(--accent);
+    font-size: 18px; color: var(--accent);
   }
   .card .name a { color: inherit; text-decoration: none; }
   .card .name a:hover { text-decoration: underline; }
-  .card .lang { float: right; color: var(--muted); font-size: 13px; }
-  .card p { color: var(--muted); margin-top: 8px; font-size: 15px; }
-  .tags { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .card .lang { float: right; color: var(--muted); font-size: 12.5px; font-family: ui-monospace, Menlo, monospace; }
+  .card p { color: var(--muted); margin-top: 10px; font-size: 15px; }
+  .tags { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
   .tag {
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-size: 12px; color: var(--accent2); border: 1px solid var(--border);
-    border-radius: 999px; padding: 2px 10px; text-decoration: none;
+    border-radius: 999px; padding: 3px 11px; text-decoration: none;
+    transition: border-color .15s ease, color .15s ease;
   }
-  .tag:hover { border-color: var(--accent2); }
-  .card .links { margin-top: 14px; font-size: 14px; }
-  .card .links a { color: var(--muted); margin-right: 16px; }
+  .tag:hover { border-color: var(--accent2); color: #fff; }
+  .card .links { margin-top: 16px; font-size: 14px; }
+  .card .links a { color: var(--muted); margin-right: 16px; text-decoration: none; }
   .card .links a:hover { color: var(--accent); }
-  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
-  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
-  td a { color: var(--accent); text-decoration: none; }
-  td a:hover { text-decoration: underline; }
-  td .f { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--accent2); white-space: nowrap; }
+
   .loop {
-    border: 1px dashed var(--border); border-radius: 12px; padding: 24px;
-    color: var(--muted); font-size: 15px;
+    border: 1px solid var(--border); border-radius: 14px; padding: 28px;
+    background: var(--card); backdrop-filter: blur(8px);
+    color: var(--muted); font-size: 15.5px;
   }
   .loop strong { color: var(--fg); }
   .loop a { color: var(--accent); text-decoration: none; }
   .loop a:hover { text-decoration: underline; }
   .loop .formula {
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    color: var(--accent); margin: 12px 0; font-size: 14.5px;
+    margin: 16px 0; font-size: 14.5px; color: var(--accent);
+    padding: 14px 18px; border-left: 2px solid var(--accent);
+    background: rgba(110,231,183,.05); border-radius: 0 8px 8px 0;
   }
-  ol.path { margin: 8px 0 0 20px; color: var(--muted); font-size: 15px; }
-  ol.path li { margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; }
+  tbody tr { transition: background .15s ease; }
+  tbody tr:hover { background: rgba(110,231,183,.04); }
+  td a { color: var(--accent); text-decoration: none; }
+  td a:hover { text-decoration: underline; }
+  td .f { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--accent2); white-space: nowrap; }
+  ol.path { margin: 8px 0 0 20px; color: var(--muted); font-size: 15.5px; }
+  ol.path li { margin-bottom: 10px; padding-left: 6px; }
+  ol.path li::marker { color: var(--accent); font-family: ui-monospace, Menlo, monospace; }
   ol.path a { color: var(--accent); text-decoration: none; }
   ol.path a:hover { text-decoration: underline; }
-  footer { margin: 88px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); padding-top: 24px; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .9em; color: var(--accent2); }
+  footer { margin: 96px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); padding-top: 24px; }
   footer a { color: var(--muted); }
   body.zh .en { display: none; }
   body:not(.zh) .zh { display: none; }
-  body.zh h1 { font-size: 36px; }
+  body.zh h1 { font-size: 40px; }
+  @media (max-width: 640px) { h1 { font-size: 34px; } body.zh h1 { font-size: 28px; } }
 </style>
 </head>
 <body>
+<div class="bg"><div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div></div>
 <div class="wrap">
   <button class="lang-toggle" onclick="document.body.classList.toggle('zh');this.textContent=document.body.classList.contains('zh')?'EN':'中文'">中文</button>
 
   <header>
-    <div class="kicker">the nano series</div>
+    <div class="brand"><img src="logo.svg" alt="nano logo"><div class="kicker">the nano series</div></div>
     <h1 class="en">Agent loops &amp; harness engineering,<br>small enough to read in an evening.</h1>
     <h1 class="zh">Agent loop 与 harness engineering，<br>小到一个晚上就能读完。</h1>
     <p class="sub en">
       Every idea that reshapes AI engineering eventually gets a minimal implementation you can hold in your head.
       The nano series is that for agent loops and harness engineering — real, working systems, kept deliberately small,
-      and mapped chapter-by-chapter onto the <a href="https://github.com/albert-lv/harness-101" style="color:var(--accent)">harness-101</a> course.
+      and mapped chapter-by-chapter onto the <a href="https://github.com/albert-lv/harness-101">harness-101</a> course.
     </p>
     <p class="sub zh">
       每个重塑 AI 工程的思想，最终都会有一个能装进脑子里的最小实现。nano 系列就是 agent loop 与
       harness engineering 的最小实现——真实可运行的系统，刻意保持小巧，
-      并与 <a href="https://github.com/albert-lv/harness-101" style="color:var(--accent)">harness-101</a> 课程逐章对应。
+      并与 <a href="https://github.com/albert-lv/harness-101">harness-101</a> 课程逐章对应。
     </p>
     <div class="cta">
-      <a class="btn primary en" href="#path">Start the learning path</a>
-      <a class="btn primary zh" href="#path">开始学习路径</a>
+      <a class="btn primary en" href="#path">Start the learning path ↓</a>
+      <a class="btn primary zh" href="#path">开始学习路径 ↓</a>
       <a class="btn" href="https://github.com/nano-harness">github.com/nano-harness</a>
+    </div>
+
+    <div class="term">
+      <div class="term-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="term-title">nano-agent — zsh</span>
+      </div>
+      <div class="term-body" id="term"></div>
     </div>
   </header>
 
-  <h2 class="en">The projects</h2>
-  <h2 class="zh">系列项目</h2>
-  <p class="h2-sub en">Three layers of one stack: a single agent loop, an orchestrator that runs many of them, and the distributed backend that runs the fleet.</p>
-  <p class="h2-sub zh">同一套技术栈的三个层次：单个 agent loop、批量调度它的编排器、以及运行整个集群的分布式后端。</p>
-  <div class="grid">
-    <div class="card">
-      <span class="lang">Go</span>
-      <div class="name"><a href="https://github.com/nano-harness/nano-agent">nano-agent</a></div>
-      <p class="en">A minimal AI coding assistant — the agent loop, tools, and context management without framework bloat. TUI + daemon modes, swarm multi-agent, sandboxed by default.</p>
-      <p class="zh">极简 AI 编程助手——agent loop、工具与上下文管理，没有框架包袱。TUI + daemon 双模式，swarm 多智能体，默认沙箱隔离。</p>
-      <div class="tags">
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f1-single-agent-loop">F1 loop</a>
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f2-explicit-tool-contract">F2 tools</a>
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f3-context-budgeting">F3 context</a>
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f6-least-privilege-tooling">F6 sandbox</a>
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f11-config-driven-behavior">F11 config</a>
+  <section class="reveal">
+    <h2><span class="n">01</span><span class="en">The projects</span><span class="zh">系列项目</span></h2>
+    <p class="h2-sub en">Three layers of one stack: a single agent loop, an orchestrator that runs many of them, and the distributed backend that runs the fleet.</p>
+    <p class="h2-sub zh">同一套技术栈的三个层次：单个 agent loop、批量调度它的编排器、以及运行整个集群的分布式后端。</p>
+    <div class="grid">
+      <div class="card">
+        <span class="lang">Go</span>
+        <div class="name"><a href="https://github.com/nano-harness/nano-agent">nano-agent</a></div>
+        <p class="en">A minimal AI coding assistant — the agent loop, tools, and context management without framework bloat. TUI + daemon modes, swarm multi-agent, sandboxed by default.</p>
+        <p class="zh">极简 AI 编程助手——agent loop、工具与上下文管理，没有框架包袱。TUI + daemon 双模式，swarm 多智能体，默认沙箱隔离。</p>
+        <div class="tags">
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f1-single-agent-loop">F1 loop</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f2-explicit-tool-contract">F2 tools</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f3-context-budgeting">F3 context</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f6-least-privilege-tooling">F6 sandbox</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f11-config-driven-behavior">F11 config</a>
+        </div>
+        <div class="links">
+          <a href="https://github.com/nano-harness/nano-agent/tree/main/docs">docs →</a>
+          <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/ARCHITECTURE.md">architecture →</a>
+        </div>
       </div>
-      <div class="links">
-        <a href="https://github.com/nano-harness/nano-agent/tree/main/docs">docs →</a>
-        <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/ARCHITECTURE.md">architecture →</a>
+      <div class="card">
+        <span class="lang">TypeScript · Bun</span>
+        <div class="name"><a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a></div>
+        <p class="en">A lightweight orchestration service for running coding agents on tracked issues — plan runs with DAG execution, human approval gates, cost budgets, and a web dashboard.</p>
+        <p class="zh">轻量级 agent 编排服务——把 coding agent 跑在可追踪的 issue 上：DAG plan run、人工审批门禁、成本预算和 Web 仪表盘。</p>
+        <div class="tags">
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f7-human-in-the-loop-gates">F7 HITL</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f8-observable-by-default">F8 observability</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-reproducible-runs">F9 reproducible</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f10-composable-agents">F10 composable</a>
+        </div>
+        <div class="links">
+          <a href="https://github.com/nano-harness/nano-symphony/tree/main/docs">docs →</a>
+          <a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/WORKFLOW-reference.md">workflow reference →</a>
+        </div>
+      </div>
+      <div class="card">
+        <span class="lang">Go</span>
+        <div class="name"><a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a></div>
+        <p class="en">Distributed execution for agents — a gateway/worker architecture that runs agent fleets in isolated Docker runtimes, with pairing-based onboarding and an admin console.</p>
+        <p class="zh">agent 的分布式执行——gateway/worker 架构，在隔离的 Docker 运行时里运行 agent 集群，配对式接入和管理控制台。</p>
+        <div class="tags">
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-reproducible-runs">F9 reproducible</a>
+          <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f10-composable-agents">F10 composable</a>
+        </div>
+        <div class="links">
+          <a href="https://github.com/nano-harness/nano-cloud">docs →</a>
+        </div>
       </div>
     </div>
-    <div class="card">
-      <span class="lang">TypeScript · Bun</span>
-      <div class="name"><a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a></div>
-      <p class="en">A lightweight orchestration service for running coding agents on tracked issues — plan runs with DAG execution, human approval gates, cost budgets, and a web dashboard.</p>
-      <p class="zh">轻量级 agent 编排服务——把 coding agent 跑在可追踪的 issue 上：DAG plan run、人工审批门禁、成本预算和 Web 仪表盘。</p>
-      <div class="tags">
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f7-human-in-the-loop-gates">F7 HITL</a>
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f8-observable-by-default">F8 observability</a>
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-reproducible-runs">F9 reproducible</a>
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f10-composable-agents">F10 composable</a>
-      </div>
-      <div class="links">
-        <a href="https://github.com/nano-harness/nano-symphony/tree/main/docs">docs →</a>
-        <a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/WORKFLOW-reference.md">workflow reference →</a>
-      </div>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="n">02</span><span class="en">One methodology, two ways in</span><span class="zh">一套方法论，两种打开方式</span></h2>
+    <div class="loop">
+      <span class="en">
+        <strong>harness-101</strong> teaches the <strong>Harness 12-Factor</strong> methodology with skeleton code you fill in yourself.
+        The nano series is the same twelve factors, already running in production-shaped systems.
+        The two are bound chapter by chapter:
+      </span>
+      <span class="zh">
+        <strong>harness-101</strong> 用需要你自己补全的骨架代码讲授 <strong>Harness 12-Factor</strong> 方法论；
+        nano 系列则是这十二条因素在真实系统里跑起来的样子。两者逐章绑定：
+      </span>
+      <div class="formula en">learn the factor in harness-101 → read it running in nano → build your own</div>
+      <div class="formula zh">在 harness-101 学会因素 → 在 nano 里读到它的实现 → 动手写出自己的</div>
+      <span class="en">
+        Every factor below links the course chapter to the exact file or doc where that idea lives in the nano codebases.
+        When the course says "context budgeting is a first-class concern", you can open
+        <a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/context_compression.go">context_compression.go</a>
+        and see what that sentence costs in real code.
+      </span>
+      <span class="zh">
+        下表把每个因素的课程章节链接到 nano 代码库里它真正所在的文件或文档。
+        当课程说「上下文预算是一等公民」时，你可以直接打开
+        <a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/context_compression.go">context_compression.go</a>
+        看这句话在真实代码里值多少行。
+      </span>
     </div>
-    <div class="card">
-      <span class="lang">Go</span>
-      <div class="name"><a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a></div>
-      <p class="en">Distributed execution for agents — a gateway/worker architecture that runs agent fleets in isolated Docker runtimes, with pairing-based onboarding and an admin console.</p>
-      <p class="zh">agent 的分布式执行——gateway/worker 架构，在隔离的 Docker 运行时里运行 agent 集群，配对式接入和管理控制台。</p>
-      <div class="tags">
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-reproducible-runs">F9 reproducible</a>
-        <a class="tag" href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f10-composable-agents">F10 composable</a>
-      </div>
-      <div class="links">
-        <a href="https://github.com/nano-harness/nano-cloud">docs →</a>
-      </div>
-    </div>
-  </div>
+  </section>
 
-  <h2 class="en">One methodology, two ways in</h2>
-  <h2 class="zh">一套方法论，两种打开方式</h2>
-  <div class="loop">
-    <span class="en">
-      <strong>harness-101</strong> teaches the <strong>Harness 12-Factor</strong> methodology with skeleton code you fill in yourself.
-      The nano series is the same twelve factors, already running in production-shaped systems.
-      The two are bound chapter by chapter:
-    </span>
-    <span class="zh">
-      <strong>harness-101</strong> 用需要你自己补全的骨架代码讲授 <strong>Harness 12-Factor</strong> 方法论；
-      nano 系列则是这十二条因素在真实系统里跑起来的样子。两者逐章绑定：
-    </span>
-    <div class="formula en">learn the factor in harness-101 → read it running in nano → build your own</div>
-    <div class="formula zh">在 harness-101 学会因素 → 在 nano 里读到它的实现 → 动手写出自己的</div>
-    <span class="en">
-      Every factor below links the course chapter to the exact file or doc where that idea lives in the nano codebases.
-      When the course says "context budgeting is a first-class concern", you can open
-      <a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/context_compression.go">context_compression.go</a>
-      and see what that sentence costs in real code.
-    </span>
-    <span class="zh">
-      下表把每个因素的课程章节链接到 nano 代码库里它真正所在的文件或文档。
-      当课程说「上下文预算是一等公民」时，你可以直接打开
-      <a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/context_compression.go">context_compression.go</a>
-      看这句话在真实代码里值多少行。
-    </span>
-  </div>
+  <section class="reveal">
+    <h2><span class="n">03</span><span class="en">The 12 factors, mapped to running code</span><span class="zh">12 因素 → 运行中的代码</span></h2>
+    <p class="h2-sub en">Each factor links to the course chapter, the starter code, and the nano implementation.</p>
+    <p class="h2-sub zh">每个因素都链到课程章节、骨架代码和 nano 中的实现。</p>
+    <table>
+      <thead>
+        <tr>
+          <th class="en">Factor</th><th class="zh">因素</th>
+          <th class="en">Course</th><th class="zh">课程</th>
+          <th class="en">In the nano series</th><th class="zh">nano 系列中的实现</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="f">F1 · Single Agent Loop</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f1-single-agent-loop">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-1">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/ARCHITECTURE.md">nano-agent: architecture &amp; turn loop</a></td></tr>
+        <tr><td class="f">F2 · Explicit Tool Contract</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f2-explicit-tool-contract">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-2">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/TOOL_RUNTIME.md">nano-agent: tool runtime</a></td></tr>
+        <tr><td class="f">F3 · Context Budgeting</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f3-context-budgeting">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-3">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/context_compression.go">nano-agent: model-aware context compression</a></td></tr>
+        <tr><td class="f">F4 · Failure-First Design</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f4-failure-first-design">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-4">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/NANO.md">nano-agent: retry / fallback / circuit-breaker</a></td></tr>
+        <tr><td class="f">F5 · Graceful Degradation</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f5-graceful-degradation">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-5">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/tree/main/pkg/llm">nano-agent: multi-provider fallback &amp; circuit breakers</a></td></tr>
+        <tr><td class="f">F6 · Least-Privilege Tooling</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f6-least-privilege-tooling">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-6">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/SANDBOX_DESIGN.md">nano-agent: sandbox design</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/FIREWALL.md">firewall</a></td></tr>
+        <tr><td class="f">F7 · Human-in-the-Loop Gates</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f7-human-in-the-loop-gates">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-7">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/plan-authoring.md">nano-symphony: plan approval gates</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/PLAN_MODE.md">plan mode</a></td></tr>
+        <tr><td class="f">F8 · Observable by Default</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f8-observable-by-default">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-8">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/development/EVENT_SCHEMA.md">nano-agent: event schema</a> · <a href="https://github.com/nano-harness/nano-symphony">nano-symphony: metrics &amp; dashboard</a></td></tr>
+        <tr><td class="f">F9 · Reproducible Runs</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-reproducible-runs">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-9">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/WORKFLOW-reference.md">nano-symphony: workflow templates</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/CHECKPOINTING.md">checkpointing</a></td></tr>
+        <tr><td class="f">F10 · Composable Agents</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f10-composable-agents">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-10">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/MAILBOX.md">mailbox</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/SWARM.md">swarm</a> · <a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/adr/001-multi-agent-roles-and-shared-contract.md">roles ADR</a></td></tr>
+        <tr><td class="f">F11 · Config-Driven Behavior</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f11-config-driven-behavior">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-11">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/configuration.md">nano-agent: configuration</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/config-deep-merge.md">deep merge</a></td></tr>
+        <tr><td class="f">F12 · Continuous Evaluation</td>
+          <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f12-continuous-evaluation">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-12">starter</a></td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/swe_bench_test/README.md">nano-agent: SWE-bench evaluation</a></td></tr>
+      </tbody>
+    </table>
+  </section>
 
-  <h2 class="en">The 12 factors, mapped to running code</h2>
-  <h2 class="zh">12 因素 → 运行中的代码</h2>
-  <p class="h2-sub en"></p>
-  <p class="h2-sub zh"></p>
-  <table>
-    <thead>
-      <tr>
-        <th class="en">Factor</th><th class="zh">因素</th>
-        <th class="en">Course chapter</th><th class="zh">课程章节</th>
-        <th class="en">In the nano series</th><th class="zh">nano 系列中的实现</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td class="f">F1 · Single Agent Loop</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f1-single-agent-loop">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-1">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/ARCHITECTURE.md">nano-agent: architecture &amp; turn loop</a></td></tr>
-      <tr><td class="f">F2 · Explicit Tool Contract</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f2-explicit-tool-contract">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-2">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/TOOL_RUNTIME.md">nano-agent: tool runtime</a></td></tr>
-      <tr><td class="f">F3 · Context Budgeting</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f3-context-budgeting">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-3">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/context_compression.go">nano-agent: model-aware context compression</a></td></tr>
-      <tr><td class="f">F4 · Failure-First Design</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f4-failure-first-design">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-4">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/blob/main/NANO.md">nano-agent: retry / fallback / circuit-breaker classification</a></td></tr>
-      <tr><td class="f">F5 · Graceful Degradation</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f5-graceful-degradation">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-5">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/tree/main/pkg/llm">nano-agent: multi-provider fallback routing &amp; circuit breakers</a></td></tr>
-      <tr><td class="f">F6 · Least-Privilege Tooling</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f6-least-privilege-tooling">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-6">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/SANDBOX_DESIGN.md">nano-agent: sandbox design</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/FIREWALL.md">firewall</a></td></tr>
-      <tr><td class="f">F7 · Human-in-the-Loop Gates</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f7-human-in-the-loop-gates">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-7">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/plan-authoring.md">nano-symphony: plan approval gates</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/PLAN_MODE.md">nano-agent: plan mode</a></td></tr>
-      <tr><td class="f">F8 · Observable by Default</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f8-observable-by-default">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-8">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/development/EVENT_SCHEMA.md">nano-agent: event schema</a> · <a href="https://github.com/nano-harness/nano-symphony">nano-symphony: metrics &amp; dashboard</a></td></tr>
-      <tr><td class="f">F9 · Reproducible Runs</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f9-reproducible-runs">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-9">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/WORKFLOW-reference.md">nano-symphony: workflow templates</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/CHECKPOINTING.md">nano-agent: checkpointing</a></td></tr>
-      <tr><td class="f">F10 · Composable Agents</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f10-composable-agents">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-10">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/MAILBOX.md">nano-agent: mailbox</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/SWARM.md">swarm</a> · <a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/adr/001-multi-agent-roles-and-shared-contract.md">nano-symphony: multi-agent roles ADR</a></td></tr>
-      <tr><td class="f">F11 · Config-Driven Behavior</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f11-config-driven-behavior">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-11">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/configuration.md">nano-agent: configuration</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/config-deep-merge.md">deep merge</a></td></tr>
-      <tr><td class="f">F12 · Continuous Evaluation</td>
-        <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f12-continuous-evaluation">chapter →</a> <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-12">starter →</a></td>
-        <td><a href="https://github.com/nano-harness/nano-agent/blob/main/swe_bench_test/README.md">nano-agent: SWE-bench evaluation</a></td></tr>
-    </tbody>
-  </table>
-
-  <h2 id="path" class="en">A suggested path</h2>
-  <h2 class="zh">建议的学习路径</h2>
-  <p class="h2-sub en"></p><p class="h2-sub zh"></p>
-  <ol class="path">
-    <li class="en">Work through the course prep and F1–F3 while reading <a href="https://github.com/nano-harness/nano-agent">nano-agent</a>'s core: <code>pkg/agent</code> is the loop the course asks you to write, at production scale.</li>
-    <li class="zh">完成课程准备和 F1–F3，同时对照读 <a href="https://github.com/nano-harness/nano-agent">nano-agent</a> 的核心：<code>pkg/agent</code> 就是课程让你手写的那个 loop 的生产级版本。</li>
-    <li class="en">F4–F6: failure, degradation, and least privilege — study <code>pkg/llm</code> and the sandbox docs, then run nano-agent in its strictest permission mode and watch it refuse things.</li>
-    <li class="zh">F4–F6：失败、降级与最小权限——读 <code>pkg/llm</code> 和沙箱文档，然后把 nano-agent 开到最严权限模式，看它如何拒绝操作。</li>
-    <li class="en">F7–F9: graduate to <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a> — approval gates, observability, reproducible workflows are orchestrator concerns, not agent concerns.</li>
-    <li class="zh">F7–F9：进阶到 <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a>——审批门禁、可观测性、可复现工作流是编排层的关注点，而不是 agent 本身。</li>
-    <li class="en">F10–F12: mailbox, swarm, and evaluation — then the capstone: deploy your own fleet on <a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a>.</li>
-    <li class="zh">F10–F12：mailbox、swarm 与评估——最后是毕业项目：在 <a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a> 上部署你自己的 agent 集群。</li>
-  </ol>
+  <section class="reveal" id="path">
+    <h2><span class="n">04</span><span class="en">A suggested path</span><span class="zh">建议的学习路径</span></h2>
+    <p class="h2-sub en"></p><p class="h2-sub zh"></p>
+    <ol class="path">
+      <li class="en">Work through the course prep and F1–F3 while reading <a href="https://github.com/nano-harness/nano-agent">nano-agent</a>'s core: <code>pkg/agent</code> is the loop the course asks you to write, at production scale.</li>
+      <li class="zh">完成课程准备和 F1–F3，同时对照读 <a href="https://github.com/nano-harness/nano-agent">nano-agent</a> 的核心：<code>pkg/agent</code> 就是课程让你手写的那个 loop 的生产级版本。</li>
+      <li class="en">F4–F6: failure, degradation, and least privilege — study <code>pkg/llm</code> and the sandbox docs, then run nano-agent in its strictest permission mode and watch it refuse things.</li>
+      <li class="zh">F4–F6：失败、降级与最小权限——读 <code>pkg/llm</code> 和沙箱文档，然后把 nano-agent 开到最严权限模式，看它如何拒绝操作。</li>
+      <li class="en">F7–F9: graduate to <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a> — approval gates, observability, reproducible workflows are orchestrator concerns, not agent concerns.</li>
+      <li class="zh">F7–F9：进阶到 <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a>——审批门禁、可观测性、可复现工作流是编排层的关注点，而不是 agent 本身。</li>
+      <li class="en">F10–F12: mailbox, swarm, and evaluation — then the capstone: deploy your own fleet on <a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a>.</li>
+      <li class="zh">F10–F12：mailbox、swarm 与评估——最后是毕业项目：在 <a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a> 上部署你自己的 agent 集群。</li>
+    </ol>
+  </section>
 
   <footer>
     Maintained by <a href="https://github.com/albert-lv">@albert-lv</a> ·
@@ -270,5 +379,58 @@
     course: <a href="https://github.com/albert-lv/harness-101">harness-101</a>
   </footer>
 </div>
+
+<script>
+// --- terminal: auto-playing agent loop transcript ---
+const SCRIPT = [
+  { t: 'cmd',  text: '$ nano-agent "fix the flaky test in pkg/swarm"', type: true },
+  { t: 'think', text: '● thinking — 3.2k tokens', d: 900 },
+  { t: 'tool', text: '▸ read  pkg/swarm/hook_dispatcher_test.go', d: 700 },
+  { t: 'tool', text: '▸ edit  pkg/swarm/hook_dispatcher.go  (+14 −3)', d: 800 },
+  { t: 'tool', text: '▸ run   go test ./pkg/swarm — ok, 4.5s', d: 900 },
+  { t: 'ok',   text: '✓ task done · 2 files changed · 38s', d: 2600 },
+];
+const term = document.getElementById('term');
+const cls = { cmd: 't-cmd', think: 't-think', tool: 't-tool', ok: 't-ok' };
+
+function runTerm() {
+  term.innerHTML = '';
+  let i = 0;
+  function next() {
+    if (i >= SCRIPT.length) { setTimeout(runTerm, 3200); return; }
+    const step = SCRIPT[i++];
+    const line = document.createElement('div');
+    line.className = cls[step.t];
+    term.appendChild(line);
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    term.appendChild(cursor);
+    if (step.type) {
+      let j = 0;
+      (function typeChar() {
+        if (j <= step.text.length) {
+          line.textContent = step.text.slice(0, j++);
+          setTimeout(typeChar, 34 + Math.random() * 40);
+        } else {
+          cursor.remove();
+          setTimeout(next, 350);
+        }
+      })();
+    } else {
+      line.textContent = step.text;
+      cursor.remove();
+      setTimeout(next, step.d || 700);
+    }
+  }
+  next();
+}
+runTerm();
+
+// --- scroll reveal ---
+const io = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
 </body>
 </html>
