@@ -307,7 +307,40 @@
   </section>
 
   <section class="reveal">
-    <h2><span class="n">03</span><span class="en">The 12 factors, mapped to running code</span><span class="zh">12 因素 → 运行中的代码</span></h2>
+    <h2><span class="n">03</span><span class="en">Where nano sits in the 2026 protocol stack</span><span class="zh">nano 在 2026 协议栈中的位置</span></h2>
+    <p class="h2-sub en">The industry has converged on four layers, each with one job. The nano series implements its slice of each — and deliberately reinvents none of them.</p>
+    <p class="h2-sub zh">业界已收敛为四层各司其职的协议栈。nano 系列实现了自己在每一层的部分——并刻意不重复造任何一层。</p>
+    <table>
+      <thead>
+        <tr>
+          <th class="en">Layer</th><th class="zh">分层</th>
+          <th class="en">What it owns</th><th class="zh">职责</th>
+          <th class="en">In the nano series</th><th class="zh">nano 系列中的实现</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="f">MCP — agent ↔ tools</td>
+          <td class="en">Tool, resource, and prompt access for agents. Version-negotiated; the spec is moving toward stateless transports.</td>
+          <td class="zh">agent 的工具/资源/提示词访问。版本协商；规范正向无状态传输演进。</td>
+          <td><a href="https://github.com/nano-harness/nano-agent/tree/main/pkg/mcp">nano-agent: MCP client (OAuth, sandboxed stdio)</a> · <a href="https://github.com/nano-harness/nano-symphony/tree/main/src/mcp">nano-symphony: MCP server with version negotiation</a></td></tr>
+        <tr><td class="f">ACP — editor ↔ agent</td>
+          <td class="en">The standard seam between editors (Zed, JetBrains) and coding agents — sessions, permissions, terminals.</td>
+          <td class="zh">编辑器（Zed、JetBrains）与 coding agent 之间的标准接缝——会话、权限、终端。</td>
+          <td><a href="https://github.com/nano-harness/nano-agent/tree/main/pkg/acp">nano-agent: ACP server</a></td></tr>
+        <tr><td class="f">A2A — agent ↔ agent</td>
+          <td class="en">Cross-vendor agent delegation. Inside one harness, a mailbox is enough; A2A is for crossing process and vendor boundaries.</td>
+          <td class="zh">跨厂商的 agent 委托。同一 harness 内部用 mailbox 就够；A2A 留给跨进程、跨厂商的边界。</td>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/MAILBOX.md">nano-agent: mailbox</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/docs/features/SWARM.md">swarm</a></td></tr>
+        <tr><td class="f">Issue-driven orchestration</td>
+          <td class="en">The Symphony pattern: an issue tracker as control plane — one isolated workspace per ticket, agents that get restarted when stuck, human-reviewed PRs.</td>
+          <td class="zh">Symphony 模式：issue tracker 即控制面——每个 ticket 一个隔离工作区，agent 卡住自动重启，产出人审 PR。</td>
+          <td><a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a> · <a href="https://github.com/nano-harness/nano-cloud">nano-cloud: fleet execution</a></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="n">04</span><span class="en">The 12 factors, mapped to running code</span><span class="zh">12 因素 → 运行中的代码</span></h2>
     <p class="h2-sub en">Each factor links to the course chapter, the starter code, and the nano implementation.</p>
     <p class="h2-sub zh">每个因素都链到课程章节、骨架代码和 nano 中的实现。</p>
     <table>
@@ -327,7 +360,7 @@
           <td><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/TOOL_RUNTIME.md">nano-agent: tool runtime</a></td></tr>
         <tr><td class="f">F3 · Context Budgeting</td>
           <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f3-context-budgeting">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-3">starter</a></td>
-          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/context_compression.go">nano-agent: model-aware context compression</a></td></tr>
+          <td><a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/context_compression.go">nano-agent: model-aware context compression</a> · <a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/tools/system/shell.go">tool output budgets with spill-to-file</a></td></tr>
         <tr><td class="f">F4 · Knowing When to Stop</td>
           <td><a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f4-knowing-when-to-stop">chapter</a> · <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-4">starter</a></td>
           <td><a href="https://github.com/nano-harness/nano-agent/blob/main/pkg/agent/turn_policy.go">nano-agent: turn termination policy</a></td></tr>
@@ -360,7 +393,7 @@
   </section>
 
   <section class="reveal" id="path">
-    <h2><span class="n">04</span><span class="en">A suggested path</span><span class="zh">建议的学习路径</span></h2>
+    <h2><span class="n">05</span><span class="en">A suggested path</span><span class="zh">建议的学习路径</span></h2>
     <p class="h2-sub en"></p><p class="h2-sub zh"></p>
     <ol class="path">
       <li class="en">Work through the course prep and F1–F3 while reading <a href="https://github.com/nano-harness/nano-agent">nano-agent</a>'s core: <code>pkg/agent</code> is the loop the course asks you to write, at production scale.</li>
