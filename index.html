@@ -5,6 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>nano — minimal agent loops & harness engineering</title>
 <meta name="description" content="The nano series: minimal, readable implementations of agent loops and harness engineering — nano-symphony, nano-agent, nano-cloud. The running companion to the harness-101 course.">
+<link rel="canonical" href="https://nano-harness.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nano-harness.github.io/">
+<meta property="og:title" content="nano — minimal agent loops & harness engineering">
+<meta property="og:description" content="Minimal, readable implementations of agent loops and harness engineering — nano-agent, nano-symphony, nano-cloud. The running companion to the harness-101 course.">
+<meta property="og:image" content="https://nano-harness.github.io/logo-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="nano — minimal agent loops & harness engineering">
+<meta name="twitter:description" content="Minimal, readable implementations of agent loops and harness engineering — nano-agent, nano-symphony, nano-cloud. The running companion to the harness-101 course.">
+<meta name="twitter:image" content="https://nano-harness.github.io/logo-512.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "url": "https://nano-harness.github.io/",
+      "name": "nano — minimal agent loops & harness engineering",
+      "description": "Minimal, readable implementations of agent loops and harness engineering — the running companion to the harness-101 course.",
+      "publisher": { "@id": "https://nano-harness.github.io/#org" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://nano-harness.github.io/#org",
+      "name": "nano-harness",
+      "url": "https://github.com/nano-harness",
+      "logo": "https://nano-harness.github.io/logo-512.png"
+    }
+  ]
+}
+</script>
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="apple-touch-icon" href="logo-512.png">
 <style>
@@ -191,26 +222,27 @@
 <body>
 <div class="bg"><div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div></div>
 <div class="wrap">
-  <button class="lang-toggle" onclick="document.body.classList.toggle('zh');this.textContent=document.body.classList.contains('zh')?'EN':'中文'">中文</button>
+  <button class="lang-toggle" aria-label="Switch language / 切换语言" onclick="toggleLang(this)">中文</button>
 
   <header>
-    <div class="brand"><img src="logo.svg" alt="nano logo"><div class="kicker">the nano series</div></div>
-    <h1 class="en">Agent loops &amp; harness engineering,<br>small enough to read in an evening.</h1>
-    <h1 class="zh">Agent loop 与 harness engineering，<br>小到一个晚上就能读完。</h1>
+    <div class="brand"><img src="logo.svg" alt="nano series logo"><div class="kicker">the nano series</div></div>
+    <h1 class="en">Agent loops &amp; harness engineering —<br>concepts you can read in an evening, running code you read one file at a time.</h1>
+    <h1 class="zh">Agent loop 与 harness engineering——<br>概念一个晚上读完，运行中的代码按文件逐个攻破。</h1>
     <p class="sub en">
-      Every idea that reshapes AI engineering eventually gets a minimal implementation you can hold in your head.
-      The nano series is that for agent loops and harness engineering — real, working systems, kept deliberately small,
-      and mapped chapter-by-chapter onto the <a href="https://github.com/albert-lv/harness-101">harness-101</a> course.
+      The ideas are genuinely small: the <a href="https://github.com/albert-lv/harness-101">harness-101</a> course examples total
+      1,487 lines of Python — an honest one-evening read. The nano series is those same ideas running in
+      production-shaped systems, and you never have to read a whole repository: the mapping below anchors
+      every factor to a single source file, so you work through the real code one file at a time.
     </p>
     <p class="sub zh">
-      每个重塑 AI 工程的思想，最终都会有一个能装进脑子里的最小实现。nano 系列就是 agent loop 与
-      harness engineering 的最小实现——真实可运行的系统，刻意保持小巧，
-      并与 <a href="https://github.com/albert-lv/harness-101">harness-101</a> 课程逐章对应。
+      思想本身确实很小：<a href="https://github.com/albert-lv/harness-101">harness-101</a> 课程的示例代码共 1,487 行
+      Python——一个晚上读完是实话。nano 系列是这些思想在生产级系统里跑起来的样子，而你不需要通读任何仓库：
+      下方的映射表把每个因素锚定到单个源码文件，按文件逐个攻破即可。
     </p>
     <div class="cta">
-      <a class="btn primary en" href="#path">Start the learning path ↓</a>
-      <a class="btn primary zh" href="#path">开始学习路径 ↓</a>
-      <a class="btn" href="https://github.com/nano-harness">github.com/nano-harness</a>
+      <a class="btn primary en" href="#path" aria-label="Jump to the suggested learning path">Start the learning path ↓</a>
+      <a class="btn primary zh" href="#path" aria-label="跳转到建议的学习路径">开始学习路径 ↓</a>
+      <a class="btn" href="https://github.com/nano-harness" aria-label="nano-harness organization on GitHub">github.com/nano-harness</a>
     </div>
 
     <div class="term">
@@ -341,8 +373,8 @@
 
   <section class="reveal">
     <h2><span class="n">04</span><span class="en">The 12 factors, mapped to running code</span><span class="zh">12 因素 → 运行中的代码</span></h2>
-    <p class="h2-sub en">Each factor links to the course chapter, the starter code, and the nano implementation.</p>
-    <p class="h2-sub zh">每个因素都链到课程章节、骨架代码和 nano 中的实现。</p>
+    <p class="h2-sub en">Each factor links to the course chapter, the starter code, and the nano implementation. Every row asks you to read one file — never the whole repository.</p>
+    <p class="h2-sub zh">每个因素都链到课程章节、骨架代码和 nano 中的实现。表中的每一行只要求阅读一个文件，而不是整个仓库。</p>
     <table>
       <thead>
         <tr>
@@ -408,13 +440,33 @@
   </section>
 
   <footer>
-    Maintained by <a href="https://github.com/albert-lv">@albert-lv</a> ·
-    <a href="https://github.com/nano-harness">github.com/nano-harness</a> ·
-    course: <a href="https://github.com/albert-lv/harness-101">harness-101</a>
+    <p class="en">
+      <strong>About / Contact</strong> — This site and the nano series are maintained by the
+      <a href="https://github.com/nano-harness">nano-harness</a> organization.
+      Questions, ideas, and contributions are welcome as issues and pull requests on any of the nano repositories.
+      The companion course lives at <a href="https://github.com/albert-lv/harness-101">harness-101</a>.
+    </p>
+    <p class="zh">
+      <strong>关于 / 联系</strong>——本站与 nano 系列由 <a href="https://github.com/nano-harness">nano-harness</a>
+      组织维护。欢迎通过任一 nano 仓库的 issue 和 pull request 提问、交流或贡献代码。
+      配套课程见 <a href="https://github.com/albert-lv/harness-101">harness-101</a>。
+    </p>
+    <p style="margin-top:14px">
+      <a href="https://github.com/nano-harness">github.com/nano-harness</a> ·
+      course: <a href="https://github.com/albert-lv/harness-101">harness-101</a> ·
+      <a href="https://github.com/nano-harness/nano-harness.github.io/blob/main/LICENSE">MIT License</a>
+    </p>
   </footer>
 </div>
 
 <script>
+// --- language toggle: body.zh class + <html lang> for assistive tech ---
+function toggleLang(btn) {
+  const zh = document.body.classList.toggle('zh');
+  document.documentElement.lang = zh ? 'zh-CN' : 'en';
+  btn.textContent = zh ? 'EN' : '中文';
+}
+
 // --- terminal: auto-playing agent loop transcript ---
 const SCRIPT = [
   { t: 'cmd',  text: '$ nano-agent "fix the flaky test in pkg/swarm"', type: true },
