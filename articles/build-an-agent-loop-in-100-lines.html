@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build an Agent Loop in 100 Lines of Python — nano</title>
+<meta name="description" content="The best way to understand an agent is to write the loop yourself. A line-by-line walkthrough of the harness-101 F1 minimal agent — message list, tool dispatch, termination — and why a 100-line loop can rival heavy harnesses on SWE-bench.">
+<link rel="canonical" href="https://nano-harness.github.io/articles/build-an-agent-loop-in-100-lines.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://nano-harness.github.io/articles/build-an-agent-loop-in-100-lines.html">
+<meta property="og:title" content="Build an Agent Loop in 100 Lines of Python">
+<meta property="og:description" content="The best way to understand an agent is to write the loop yourself — a line-by-line walkthrough of the harness-101 F1 minimal agent.">
+<meta property="og:image" content="https://nano-harness.github.io/logo-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Build an Agent Loop in 100 Lines of Python">
+<meta name="twitter:description" content="The best way to understand an agent is to write the loop yourself — a line-by-line walkthrough of the harness-101 F1 minimal agent.">
+<meta name="twitter:image" content="https://nano-harness.github.io/logo-512.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Build an Agent Loop in 100 Lines of Python",
+  "description": "The best way to understand an agent is to write the loop yourself. A line-by-line walkthrough of the harness-101 F1 minimal agent — message list, tool dispatch, termination — and why a 100-line loop can rival heavy harnesses on SWE-bench.",
+  "image": "https://nano-harness.github.io/logo-512.png",
+  "author": {
+    "@type": "Organization",
+    "name": "nano-harness",
+    "url": "https://github.com/nano-harness"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "nano-harness",
+    "url": "https://nano-harness.github.io/",
+    "logo": "https://nano-harness.github.io/logo-512.png"
+  },
+  "datePublished": "2026-09-14",
+  "dateModified": "2026-09-14",
+  "mainEntityOfPage": "https://nano-harness.github.io/articles/build-an-agent-loop-in-100-lines.html"
+}
+</script>
+<link rel="icon" type="image/svg+xml" href="../logo.svg">
+<link rel="apple-touch-icon" href="../logo-512.png">
+<style>
+  :root {
+    --bg: #07090c; --fg: #e6e8eb; --muted: #8b95a3;
+    --accent: #6ee7b7; --accent2: #7dd3fc; --accent3: #c4b5fd;
+    --card: rgba(20, 24, 29, .72); --border: #232a32;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6; overflow-x: hidden;
+  }
+  .bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+  .bg::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(110,231,183,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(110,231,183,.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 75%);
+    animation: gridDrift 24s linear infinite;
+  }
+  @keyframes gridDrift { to { background-position: 44px 44px, 44px 44px; } }
+  .glow { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .16; }
+  .glow.g1 { width: 560px; height: 560px; background: var(--accent); top: -220px; left: -120px; animation: float1 14s ease-in-out infinite; }
+  .glow.g2 { width: 480px; height: 480px; background: var(--accent2); top: -160px; right: -140px; animation: float2 18s ease-in-out infinite; }
+  .glow.g3 { width: 420px; height: 420px; background: var(--accent3); top: 480px; left: 40%; opacity: .10; animation: float1 22s ease-in-out infinite reverse; }
+  @keyframes float1 { 50% { transform: translate(60px, 40px) scale(1.08); } }
+  @keyframes float2 { 50% { transform: translate(-70px, 50px) scale(1.12); } }
+
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 72px 0 24px; position: relative; }
+  .kicker {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--accent); font-size: 13.5px; letter-spacing: .18em; text-transform: uppercase;
+  }
+  .kicker::before { content: "● "; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  h1 {
+    font-size: 42px; line-height: 1.15; margin: 18px 0 20px; letter-spacing: -0.03em; font-weight: 800;
+    background: linear-gradient(100deg, #fff 20%, var(--accent) 45%, var(--accent2) 65%, var(--accent3) 90%);
+    background-size: 220% auto;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shine 7s ease-in-out infinite;
+  }
+  @keyframes shine { 50% { background-position: 100% center; } }
+  .sub { color: var(--muted); font-size: 17.5px; }
+  .byline {
+    margin-top: 18px; font-size: 13.5px; color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .byline a { color: var(--accent); text-decoration: none; }
+  .byline a:hover { text-decoration: underline; }
+  .lang-toggle {
+    position: absolute; top: 28px; right: 24px; font-size: 13px; z-index: 2;
+    color: var(--muted); border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 10px; cursor: pointer; background: rgba(20,24,29,.6); backdrop-filter: blur(6px);
+  }
+  .lang-toggle:hover { color: var(--fg); border-color: var(--accent); }
+  .back { font-size: 14px; margin-bottom: 34px; display: inline-block; color: var(--muted); text-decoration: none; }
+  .back:hover { color: var(--accent); }
+
+  article { margin-top: 16px; }
+  article section { margin-top: 56px; }
+  h2 { font-size: 26px; margin-bottom: 14px; letter-spacing: -0.015em; }
+  h2 .n {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--accent); font-size: 14.5px; vertical-align: 5px; margin-right: 10px;
+  }
+  h3 { font-size: 18px; margin: 30px 0 10px; color: var(--fg); }
+  p { margin: 14px 0; color: #c3cad2; font-size: 16px; }
+  p a, li a { color: var(--accent); text-decoration: none; }
+  p a:hover, li a:hover { text-decoration: underline; }
+  ul, ol { margin: 14px 0 14px 22px; color: #c3cad2; font-size: 16px; }
+  li { margin-bottom: 8px; }
+  li::marker { color: var(--accent); }
+  strong { color: var(--fg); }
+  code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .9em; color: var(--accent2); }
+
+  .formula {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    margin: 20px 0; font-size: 14.5px; color: var(--accent);
+    padding: 14px 18px; border-left: 2px solid var(--accent);
+    background: rgba(110,231,183,.05); border-radius: 0 8px 8px 0;
+  }
+  pre.code {
+    margin: 18px 0; border-radius: 14px; border: 1px solid var(--border);
+    background: rgba(10, 13, 17, .88);
+    box-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 0 1px rgba(110,231,183,.05);
+    padding: 18px 20px; overflow-x: auto;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px; line-height: 1.7; color: #d5dbe3;
+  }
+  pre.code .cm { color: var(--muted); }
+  pre.code .kw { color: var(--accent3); }
+  pre.code .st { color: var(--accent); }
+  pre.code .fn { color: var(--accent2); }
+
+  .callout {
+    background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(8px);
+    border-radius: 14px; padding: 22px 24px; margin: 22px 0; position: relative; overflow: hidden;
+    color: var(--muted); font-size: 15px;
+  }
+  .callout::before {
+    content: ""; position: absolute; inset: 0 auto 0 0; width: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+  }
+  .callout strong { color: var(--fg); }
+  .callout a { color: var(--accent); text-decoration: none; }
+  .callout a:hover { text-decoration: underline; }
+
+  .cta-card {
+    background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(8px);
+    border-radius: 14px; padding: 26px; margin-top: 22px; position: relative; overflow: hidden;
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .cta-card::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(110,231,183,.5), transparent);
+  }
+  .cta-card:hover {
+    transform: translateY(-4px); border-color: rgba(110,231,183,.4);
+    box-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 32px rgba(110,231,183,.08);
+  }
+  .cta-card .name {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 17px; color: var(--accent);
+  }
+  .cta-card p { color: var(--muted); margin-top: 8px; font-size: 15px; }
+  .cta-card .links { margin-top: 14px; font-size: 14px; }
+  .cta-card .links a { color: var(--muted); margin-right: 16px; text-decoration: none; }
+  .cta-card .links a:hover { color: var(--accent); }
+
+  footer { margin: 80px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); padding-top: 24px; }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--accent); }
+  body.zh .en { display: none; }
+  body:not(.zh) .zh { display: none; }
+  body.zh h1 { font-size: 34px; }
+  @media (max-width: 640px) { h1 { font-size: 30px; } body.zh h1 { font-size: 25px; } }
+</style>
+</head>
+<body>
+<div class="bg"><div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div></div>
+<div class="wrap">
+  <button class="lang-toggle" aria-label="Switch language / 切换语言" onclick="toggleLang(this)">中文</button>
+
+  <header>
+    <a class="back" href="../">← nano-harness.github.io</a>
+    <div class="kicker">nano articles · 2026-09-14</div>
+    <h1 class="en">Build an Agent Loop in 100 Lines of Python</h1>
+    <h1 class="zh">100 行 Python 手写一个 agent loop</h1>
+    <p class="sub en">
+      The fastest way to understand what an agent actually is — and what it is not — is to write the loop yourself.
+      Here is the harness-101 F1 minimal agent, taken apart line by line: the message list, the tool dispatch,
+      and the one condition that decides when it stops.
+    </p>
+    <p class="sub zh">
+      理解 agent 到底是什么（以及不是什么）最快的方式，就是亲手把这个 loop 写出来。
+      本文把 harness-101 F1 的最小 agent 逐段拆开：消息列表、工具派发，以及那个决定它何时停下来的唯一条件。
+    </p>
+    <div class="byline en">by <a href="https://github.com/nano-harness">nano-harness</a> · based on <a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f1-single-agent-loop">harness-101, chapter F1</a></div>
+    <div class="byline zh">作者 <a href="https://github.com/nano-harness">nano-harness</a> · 基于 <a href="https://github.com/albert-lv/harness-101/blob/main/agent-harness-course.md#f1-single-agent-loop">harness-101 课程 F1 章节</a></div>
+  </header>
+
+  <article>
+    <section>
+      <h2><span class="n">01</span><span class="en">Why write one yourself</span><span class="zh">为什么要亲手写一个</span></h2>
+      <p class="en">
+        In 2026 the evidence for "small is real" is hard to ignore. Princeton and Stanford's
+        <strong>mini-swe-agent</strong> — roughly a hundred lines of Python with a single bash tool — scores
+        over 74% on SWE-bench Verified, a benchmark built from real GitHub issues. Run the same model behind a
+        heavy agentic scaffold and the minimal loop matches or beats it; and because there is almost no
+        scaffolding in the way, each new model generation's gains flow straight through to the benchmark score
+        instead of being absorbed by the harness.
+      </p>
+      <p class="zh">
+        2026 年的证据已经很难忽视：Princeton 与 Stanford 的 <strong>mini-swe-agent</strong>——约一百行 Python、
+        只挂一个 bash 工具——在 SWE-bench Verified（由真实 GitHub issue 构成的基准）上超过了 74%。同一个模型，
+        套上重型 agent 脚手架反而跑不赢这个极简 loop；而且因为中间几乎没有脚手架的遮挡，每一次模型代际升级的
+        红利都会直接传导到跑分上，而不是被马具（harness）自己吃掉。
+      </p>
+      <p class="en">
+        This is not a verdict against heavy harnesses — it is a division of labor. A minimal loop wins on
+        legibility and on staying out of the model's way. A production harness earns its complexity elsewhere:
+        permission models, sandboxing, audit trails, termination policies, context budgets that keep a
+        twelve-hour session reliable. The mistake is using the heavy thing before you have ever seen the small
+        one run. Write the loop once, and every harness feature you meet afterwards reads as an answer to a
+        problem you have personally watched happen.
+      </p>
+      <p class="zh">
+        这并不是对重型马具的宣判，而是分工。极简 loop 胜在可读、胜在不挡模型的路；生产级马具的复杂度则花在
+        别的地方：权限模型、沙箱、审计、终止策略、让十二小时长会话依然可靠的上下文预算。真正的错误是在从未
+        见过小的跑起来之前就去用大的。亲手写一遍 loop，之后你遇到的每一个 harness 特性，都会读成「一个你
+        亲眼见过的问题的答案」。
+      </p>
+      <div class="callout en">
+        <strong>The claim this article makes concrete:</strong> an agent is a state machine, not magic.
+        Call the model → parse the tool call → execute the tool → feed the result back into context →
+        call the model again, until the model stops asking for tools. Everything else is engineering around that loop.
+      </div>
+      <div class="callout zh">
+        <strong>本文要落实的一句话：</strong>agent 是一台状态机，不是魔法。调用模型 → 解析工具调用 →
+        执行工具 → 把结果塞回上下文 → 再次调用模型，直到模型不再请求工具为止。其余的一切都是围绕这个
+        loop 的工程。
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="n">02</span><span class="en">The whole state machine, in one formula</span><span class="zh">整台状态机，一行公式</span></h2>
+      <div class="formula en">messages → model → (text ? done : tool_call → execute → append result → messages)</div>
+      <div class="formula zh">messages → 模型 →（返回文本？结束 : 工具调用 → 执行 → 追加结果 → messages）</div>
+      <p class="en">
+        Three ideas carry the entire implementation, and we will take them in order:
+      </p>
+      <p class="zh">整个实现只靠三个想法，我们逐个拆：</p>
+      <ol>
+        <li class="en"><strong>The message list is the whole state.</strong> There is no hidden memory — the conversation you send is the agent's mind.</li>
+        <li class="zh"><strong>消息列表就是全部状态。</strong>没有隐藏的记忆——你发出去的对话历史就是 agent 的大脑。</li>
+        <li class="en"><strong>Tools are just functions plus a description.</strong> The model reads the description, decides to call, and your code dispatches to a plain Python function.</li>
+        <li class="zh"><strong>工具就是函数加一段描述。</strong>模型读描述、决定调用，你的代码把它派发到一个普通的 Python 函数。</li>
+        <li class="en"><strong>Termination is one check.</strong> When the model answers with text instead of a tool call, the loop is over.</li>
+        <li class="zh"><strong>终止条件只有一次判断。</strong>当模型返回文本而不是工具调用时，循环结束。</li>
+      </ol>
+      <p class="en">
+        The code below is the reference solution of
+        <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-1">harness-101 examples/factor-1</a>
+        (comments translated to English; the course original is bilingual). The
+        <a href="https://github.com/albert-lv/harness-101/blob/main/examples/factor-1/starter/minimal_agent.py">starter</a>
+        leaves four TODOs for you; the
+        <a href="https://github.com/albert-lv/harness-101/blob/main/examples/factor-1/solution/minimal_agent.py">solution</a>
+        is what we walk through here.
+      </p>
+      <p class="zh">
+        下面的代码来自 <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-1">harness-101
+        examples/factor-1</a> 的参考实现（注释译为英文，课程原文为中文）。
+        <a href="https://github.com/albert-lv/harness-101/blob/main/examples/factor-1/starter/minimal_agent.py">starter</a>
+        留了四个 TODO 给你填；
+        <a href="https://github.com/albert-lv/harness-101/blob/main/examples/factor-1/solution/minimal_agent.py">solution</a>
+        就是我们接下来要逐段拆的版本。
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="n">03</span><span class="en">One tool, honestly described</span><span class="zh">一个被认真描述的工具</span></h2>
+      <p class="en">
+        The tool list is the agent's entire interface with the world. Note what the schema carries:
+        not just a name and parameters, but a <strong>description that is really a prompt</strong> — it tells the
+        model the command must be read-only. You will see in F2 how much depends on sentences like that.
+      </p>
+      <p class="zh">
+        工具列表就是 agent 与世界的全部接口。注意 schema 里装了什么：不只是名字和参数，还有一段
+        <strong>本质上是提示词的描述</strong>——它告诉模型命令必须是只读的。到 F2 你会看到，这样的句子值多少行代码。
+      </p>
+      <pre class="code"><span class="kw">import</span> os, subprocess
+<span class="kw">from</span> anthropic <span class="kw">import</span> Anthropic
+
+client = Anthropic(api_key=os.environ.get(<span class="st">"ANTHROPIC_API_KEY"</span>))
+
+TOOLS = [{
+    <span class="st">"name"</span>: <span class="st">"run_command"</span>,
+    <span class="st">"description"</span>: <span class="st">"Run a command in the local shell and return stdout. "</span>
+                     <span class="st">"The command must be read-only (e.g. ping, cat, ls). "</span>
+                     <span class="st">"No write operations."</span>,
+    <span class="st">"input_schema"</span>: {
+        <span class="st">"type"</span>: <span class="st">"object"</span>,
+        <span class="st">"properties"</span>: {
+            <span class="st">"cmd"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"description"</span>: <span class="st">"the shell command to run"</span>}
+        },
+        <span class="st">"required"</span>: [<span class="st">"cmd"</span>],
+    },
+}]</pre>
+      <p class="en">
+        And the tool itself is deliberately boring — ten lines, with two quiet acts of harness engineering:
+        a <strong>timeout</strong> so a hung command cannot hang the agent, and an <strong>error returned as a normal
+        string</strong> so the model reads its own failure and corrects course, instead of the loop crashing on an exception.
+      </p>
+      <p class="zh">
+        工具本身刻意无聊——十来行，却藏了两处不动声色的 harness engineering：<strong>超时</strong>，让卡死的命令
+        无法拖死 agent；<strong>错误以普通字符串返回</strong>，让模型读到自己的失败并自我纠正，而不是让异常
+        把整个 loop 砸停。
+      </p>
+      <pre class="code"><span class="kw">def</span> <span class="fn">run_command</span>(cmd: str) -> str:
+    <span class="kw">try</span>:
+        result = subprocess.run(
+            cmd, shell=<span class="kw">True</span>, capture_output=<span class="kw">True</span>, text=<span class="kw">True</span>, timeout=10
+        )
+        <span class="kw">return</span> result.stdout <span class="kw">or</span> result.stderr
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">return</span> <span class="st">f"command failed: </span>{e}<span class="st">"</span></pre>
+    </section>
+
+    <section>
+      <h2><span class="n">04</span><span class="en">The loop: dispatch and termination</span><span class="zh">循环本体：派发与终止</span></h2>
+      <p class="en">
+        Here is the heart of it. Read it once slowly — there is nothing else.
+      </p>
+      <p class="zh">核心全在这里。慢慢读一遍——除此之外没有别的了。</p>
+      <pre class="code"><span class="kw">def</span> <span class="fn">agent_loop</span>(task: str, max_steps: int = 10):
+    messages = [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: task}]   <span class="cm"># the whole state</span>
+    <span class="kw">for</span> step <span class="kw">in</span> range(max_steps):               <span class="cm"># the safety bound</span>
+        response = client.messages.create(
+            model=<span class="st">"claude-3-5-sonnet-latest"</span>,
+            max_tokens=1024,
+            messages=messages,
+            tools=TOOLS,
+        )
+
+        <span class="cm"># termination: the model answered in text, not tool calls</span>
+        <span class="kw">if</span> response.stop_reason != <span class="st">"tool_use"</span>:
+            print(response.content[0].text)
+            <span class="kw">return</span>
+
+        <span class="cm"># dispatch: find the tool_use block, run the matching function</span>
+        tool_use = next((b <span class="kw">for</span> b <span class="kw">in</span> response.content <span class="kw">if</span> b.type == <span class="st">"tool_use"</span>), <span class="kw">None</span>)
+        <span class="kw">if not</span> tool_use:
+            <span class="kw">return</span>
+        result = run_command(tool_use.input[<span class="st">"cmd"</span>])
+
+        <span class="cm"># feedback: append BOTH the call and its result to the state</span>
+        messages.append({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: response.content})
+        messages.append({
+            <span class="st">"role"</span>: <span class="st">"user"</span>,
+            <span class="st">"content"</span>: [{
+                <span class="st">"type"</span>: <span class="st">"tool_result"</span>,
+                <span class="st">"tool_use_id"</span>: tool_use.id,
+                <span class="st">"content"</span>: result,
+            }],
+        })</pre>
+      <h3 class="en">Three details worth staring at</h3>
+      <h3 class="zh">三个值得盯着看的细节</h3>
+      <ul>
+        <li class="en"><strong>The message list is append-only memory.</strong> Both the assistant's tool call and the tool's result go back into <code>messages</code>. The next model call sees the full history — that is all "memory" an agent has. When courses later talk about context budgeting and compression, this list is the thing being budgeted and compressed.</li>
+        <li class="zh"><strong>消息列表是只追加的记忆。</strong>assistant 的工具调用和工具返回的结果都要塞回 <code>messages</code>，下一次模型调用看到完整历史——这就是 agent 全部的「记忆」。后面课程讲上下文预算与压缩时，被预算、被压缩的就是这个列表。</li>
+        <li class="en"><strong>Dispatch is a lookup, not magic.</strong> The model emits a structured <code>tool_use</code> block with a name and JSON input; your code finds the block and calls the Python function of the same name. There is no framework between the model's decision and your function — you can print it, log it, or refuse it.</li>
+        <li class="zh"><strong>派发只是一次查表，不是魔法。</strong>模型吐出一个带名字和 JSON 参数的结构化 <code>tool_use</code> 块，你的代码找到这个块、调用同名 Python 函数。模型的决定和你的函数之间没有任何框架——你可以打印它、记录它，或者拒绝它。</li>
+        <li class="en"><strong>Termination has two layers, and you need both.</strong> The primary exit is <code>stop_reason != "tool_use"</code> — the model declares itself done by answering in prose. The secondary exit is <code>max_steps</code> — the harness declaring the agent stuck. F4 exists because the first condition alone is not trustworthy; but you should see a loop without it first.</li>
+        <li class="zh"><strong>终止有两层，缺一不可。</strong>主出口是 <code>stop_reason != "tool_use"</code>——模型用散文回答，即宣布完工；兜底出口是 <code>max_steps</code>——马具宣布 agent 卡住了。F4 之所以存在，是因为光靠第一个条件并不可信；但你应该先看一个没有它的 loop 长什么样。</li>
+      </ul>
+      <p class="en">
+        Wire it up with <code>agent_loop("check this machine's network latency to baidu.com")</code> and watch:
+        the model calls <code>run_command</code> with <code>ping -c 4 baidu.com</code>, reads the output, and answers
+        in prose. Three steps, two tool calls, one loop. The magic is gone — and that is the point.
+      </p>
+      <p class="zh">
+        用 <code>agent_loop("帮我查一下本机到 baidu.com 的网络延迟")</code> 跑起来看：模型用
+        <code>ping -c 4 baidu.com</code> 调用 <code>run_command</code>，读输出，然后用散文回答。三步、两次工具
+        调用、一个 loop。魔法消失了——这正是目的。
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="n">05</span><span class="en">What this loop deliberately doesn't do</span><span class="zh">这个 loop 刻意没做的事</span></h2>
+      <p class="en">
+        Every line missing from these hundred is a chapter of harness engineering waiting for you:
+        the tool does no parameter validation and the description is the only thing stopping a write
+        (F2, F6); nothing detects an agent calling the same tool forever (F4); nothing watches the message
+        list grow until the model degrades (F3, F13); and there is no trace to evaluate afterwards (F12).
+        The minimal loop is not the destination — it is the instrument panel that makes every one of those
+        concerns visible. This is also the honest answer to "if 100 lines beats the heavy harness, why does the
+        heavy harness exist": benchmarks are single tasks with a grader; production is long sessions, real
+        credentials, and irreversible actions. Reliability, safety, and auditability are exactly what the extra
+        lines buy.
+      </p>
+      <p class="zh">
+        这一百行里缺的每一行，都是 harness engineering 等着你的一章：工具不做参数校验，阻止写操作的只有
+        描述里的那句话（F2、F6）；没有东西检测 agent 无限重复调用同一个工具（F4）；没有东西盯着消息列表
+        一路膨胀直到模型开始退化（F3、F13）；跑完也没有可评估的 trace（F12）。极简 loop 不是终点——它是
+        一块仪表盘，让上面每一个问题都变得可见。这也诚实回答了「既然 100 行能赢重型马具，重型马具为什么
+        存在」：基准测试是带评分器的单任务；生产环境是长会话、真实凭据和不可逆操作。可靠性、安全性、可审计
+        性，正是那些多出来的行数买到的东西。
+      </p>
+    </section>
+
+    <section>
+      <h2><span class="n">06</span><span class="en">Where to go next</span><span class="zh">接下来去哪</span></h2>
+      <p class="en">
+        Fill in the four TODOs in the starter yourself — an honest evening's work — then keep going with the
+        Harness 12-Factor. Each factor is one idea, and each idea is anchored to a single file of running code
+        in the nano series: concepts you read in an evening, code you take one file at a time.
+      </p>
+      <p class="zh">
+        先亲手把 starter 里的四个 TODO 填完——一个晚上诚实的功夫——然后沿着 Harness 12-Factor 继续。每个因素
+        是一个想法，每个想法都锚定到 nano 系列里一个正在运行的源码文件：概念一晚读完，代码按文件攻破。
+      </p>
+      <div class="cta-card">
+        <div class="name en">The 12 factors, mapped to running code</div>
+        <div class="name zh">12 因素 → 运行中的代码映射表</div>
+        <p class="en">Every factor links the course chapter, the starter code, and the exact file where the idea runs in production-shaped systems.</p>
+        <p class="zh">每个因素都链到课程章节、骨架代码，以及这个想法在真实系统里运行的那个文件。</p>
+        <div class="links">
+          <a href="../#path">nano-harness.github.io →</a>
+          <a href="https://github.com/albert-lv/harness-101">harness-101 course →</a>
+          <a href="https://github.com/albert-lv/harness-101/tree/main/examples/factor-1">factor-1 starter &amp; solution →</a>
+        </div>
+      </div>
+    </section>
+  </article>
+
+  <footer>
+    <p class="en">
+      Maintained by the <a href="https://github.com/nano-harness">nano-harness</a> organization ·
+      companion course: <a href="https://github.com/albert-lv/harness-101">harness-101</a> ·
+      <a href="../">back to the nano series</a>
+    </p>
+    <p class="zh">
+      由 <a href="https://github.com/nano-harness">nano-harness</a> 组织维护 ·
+      配套课程：<a href="https://github.com/albert-lv/harness-101">harness-101</a> ·
+      <a href="../">返回 nano 系列首页</a>
+    </p>
+  </footer>
+</div>
+
+<script>
+// --- language toggle: body.zh class + <html lang> for assistive tech ---
+function toggleLang(btn) {
+  const zh = document.body.classList.toggle('zh');
+  document.documentElement.lang = zh ? 'zh-CN' : 'en';
+  btn.textContent = zh ? 'EN' : '中文';
+}
+</script>
+</body>
+</html>
