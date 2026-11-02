@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nano — minimal agent loops & harness engineering</title>
+<meta name="description" content="The nano series: readable agent loops, orchestration, distributed execution, and practical developer tools.">
+<link rel="canonical" href="https://nano-harness.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nano-harness.github.io/">
+<meta property="og:title" content="nano — minimal agent loops & harness engineering">
+<meta property="og:description" content="Readable agent loops, orchestration, distributed execution, and practical developer tools.">
+<meta property="og:image" content="https://nano-harness.github.io/logo-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="nano — minimal agent loops & harness engineering">
+<meta name="twitter:description" content="Readable agent loops, orchestration, distributed execution, and practical developer tools.">
+<meta name="twitter:image" content="https://nano-harness.github.io/logo-512.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "url": "https://nano-harness.github.io/",
+      "name": "nano — minimal agent loops & harness engineering",
+      "description": "Readable agent loops, orchestration, distributed execution, and practical developer tools.",
+      "publisher": { "@id": "https://nano-harness.github.io/#org" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://nano-harness.github.io/#org",
+      "name": "nano-harness",
+      "url": "https://github.com/nano-harness",
+      "logo": "https://nano-harness.github.io/logo-512.png"
+    }
+  ]
+}
+</script>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="apple-touch-icon" href="logo-512.png">
+<style>
+  :root {
+    --bg: #07090c; --fg: #e6e8eb; --muted: #8b95a3;
+    --accent: #6ee7b7; --accent2: #7dd3fc; --accent3: #c4b5fd;
+    --card: rgba(20, 24, 29, .72); --border: #232a32;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6; overflow-x: hidden;
+  }
+  .bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+  .bg::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(110,231,183,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(110,231,183,.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 30%, transparent 75%);
+    animation: gridDrift 24s linear infinite;
+  }
+  @keyframes gridDrift { to { background-position: 44px 44px, 44px 44px; } }
+  .glow { position: absolute; border-radius: 50%; filter: blur(110px); opacity: .16; }
+  .glow.g1 { width: 560px; height: 560px; background: var(--accent); top: -220px; left: -120px; animation: float1 14s ease-in-out infinite; }
+  .glow.g2 { width: 480px; height: 480px; background: var(--accent2); top: -160px; right: -140px; animation: float2 18s ease-in-out infinite; }
+  .glow.g3 { width: 420px; height: 420px; background: var(--accent3); top: 480px; left: 40%; opacity: .10; animation: float1 22s ease-in-out infinite reverse; }
+  @keyframes float1 { 50% { transform: translate(60px, 40px) scale(1.08); } }
+  @keyframes float2 { 50% { transform: translate(-70px, 50px) scale(1.12); } }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 96px 0 40px; position: relative; }
+  .kicker {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--accent); font-size: 13.5px; letter-spacing: .18em; text-transform: uppercase;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand img { width: 44px; height: 44px; border-radius: 12px; box-shadow: 0 0 20px rgba(110,231,183,.25); }
+  .kicker::before { content: "● "; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  h1 {
+    font-size: 52px; line-height: 1.12; margin: 18px 0 22px; letter-spacing: -0.03em; font-weight: 800;
+    background: linear-gradient(100deg, #fff 20%, var(--accent) 45%, var(--accent2) 65%, var(--accent3) 90%);
+    background-size: 220% auto;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shine 7s ease-in-out infinite;
+  }
+  @keyframes shine { 50% { background-position: 100% center; } }
+  .sub { color: var(--muted); font-size: 18px; max-width: 700px; }
+  .sub a { color: var(--accent); text-decoration: none; }
+  .cta { margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 11px 22px; border-radius: 9px; text-decoration: none;
+    font-size: 15px; border: 1px solid var(--border); color: var(--fg);
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .btn.primary {
+    background: linear-gradient(120deg, var(--accent), #34d399); border: none; color: #05281b; font-weight: 700;
+    box-shadow: 0 0 24px rgba(110,231,183,.35);
+  }
+  .btn.primary:hover { box-shadow: 0 0 36px rgba(110,231,183,.55); }
+  .lang-toggle {
+    position: absolute; top: 28px; right: 24px; font-size: 13px; z-index: 2;
+    color: var(--muted); border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 10px; cursor: pointer; background: rgba(20,24,29,.6); backdrop-filter: blur(6px);
+  }
+  .lang-toggle:hover { color: var(--fg); border-color: var(--accent); }
+  .term {
+    margin: 48px 0 8px; border-radius: 14px; border: 1px solid var(--border);
+    background: rgba(10, 13, 17, .88); backdrop-filter: blur(8px);
+    box-shadow: 0 24px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(110,231,183,.06), 0 0 44px rgba(110,231,183,.07);
+    overflow: hidden;
+  }
+  .term-bar {
+    display: flex; align-items: center; gap: 8px; padding: 12px 16px;
+    border-bottom: 1px solid var(--border); background: rgba(255,255,255,.02);
+  }
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+  .term-title {
+    margin-left: 10px; font-size: 12.5px; color: var(--muted);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .term-body {
+    padding: 20px 22px; min-height: 238px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 14px; line-height: 1.85; white-space: pre-wrap;
+  }
+  .t-cmd { color: #fff; } .t-prompt { color: var(--accent); }
+  .t-think { color: #fbbf24; } .t-tool { color: var(--accent2); }
+  .t-ok { color: var(--accent); } .t-dim { color: var(--muted); }
+  .cursor { display: inline-block; width: 8px; height: 17px; background: var(--accent); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  section { margin-top: 96px; }
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+  h2 { font-size: 27px; margin-bottom: 10px; letter-spacing: -0.015em; }
+  h2 .n {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: var(--accent); font-size: 15px; vertical-align: 6px; margin-right: 10px;
+  }
+  .h2-sub { color: var(--muted); font-size: 15.5px; margin-bottom: 26px; max-width: 720px; }
+  .grid { display: grid; gap: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); backdrop-filter: blur(8px);
+    border-radius: 14px; padding: 26px; position: relative; overflow: hidden;
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .card::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(110,231,183,.5), transparent);
+    opacity: 0; transition: opacity .2s ease;
+  }
+  .card:hover {
+    transform: translateY(-4px); border-color: rgba(110,231,183,.4);
+    box-shadow: 0 16px 48px rgba(0,0,0,.4), 0 0 32px rgba(110,231,183,.08);
+  }
+  .card:hover::before { opacity: 1; }
+  .card .name {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 18px; color: var(--accent);
+  }
+  .card .name a { color: inherit; text-decoration: none; }
+  .card .name a:hover { text-decoration: underline; }
+  .card .lang { float: right; color: var(--muted); font-size: 12.5px; font-family: ui-monospace, Menlo, monospace; }
+  .card p { color: var(--muted); margin-top: 10px; font-size: 15px; }
+  .tags { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px; color: var(--accent2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 3px 11px; text-decoration: none;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .tag:hover { border-color: var(--accent2); color: #fff; }
+  .card .links { margin-top: 16px; font-size: 14px; }
+  .card .links a { color: var(--muted); margin-right: 16px; text-decoration: none; }
+  .card .links a:hover { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; }
+  tbody tr { transition: background .15s ease; }
+  tbody tr:hover { background: rgba(110,231,183,.04); }
+  td a { color: var(--accent); text-decoration: none; }
+  td a:hover { text-decoration: underline; }
+  td .f { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--accent2); white-space: nowrap; }
+  ol.path { margin: 8px 0 0 20px; color: var(--muted); font-size: 15.5px; }
+  ol.path li { margin-bottom: 10px; padding-left: 6px; }
+  ol.path li::marker { color: var(--accent); font-family: ui-monospace, Menlo, monospace; }
+  ol.path a { color: var(--accent); text-decoration: none; }
+  ol.path a:hover { text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .9em; color: var(--accent2); }
+  footer { margin: 96px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); padding-top: 24px; }
+  footer a { color: var(--muted); }
+  body.zh .en { display: none; }
+  body:not(.zh) .zh { display: none; }
+  body.zh h1 { font-size: 40px; }
+  @media (max-width: 640px) { h1 { font-size: 34px; } body.zh h1 { font-size: 28px; } }
+</style>
+</head>
+<body>
+<div class="bg"><div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div></div>
+<div class="wrap">
+  <button class="lang-toggle" aria-label="Switch language / 切换语言" onclick="toggleLang(this)">中文</button>
+
+  <header>
+    <div class="brand"><img src="logo.svg" alt="nano series logo"><div class="kicker">the nano series</div></div>
+    <h1 class="en">Agent loops &amp; harness engineering —<br>concepts you can read in an evening, running code you read one file at a time.</h1>
+    <h1 class="zh">Agent loop 与 harness engineering——<br>概念一个晚上读完，运行中的代码按文件逐个攻破。</h1>
+    <p class="sub en">A collection of readable agent infrastructure and practical developer tools. Each project is small enough to understand, build, and run from source.</p>
+    <p class="sub zh">一组可读的 agent 基础设施与实用开发工具。每个项目都可以从源码理解、构建并运行。</p>
+    <div class="cta">
+      <a class="btn primary en" href="#projects" aria-label="Jump to projects">Explore the projects ↓</a>
+      <a class="btn primary zh" href="#projects" aria-label="查看项目">查看全部项目 ↓</a>
+      <a class="btn" href="https://github.com/nano-harness" aria-label="nano-harness organization on GitHub">github.com/nano-harness</a>
+    </div>
+    <div class="term">
+      <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="term-title">nano-agent — zsh</span></div>
+      <div class="term-body" id="term"></div>
+    </div>
+    <div class="card" style="margin-top: 28px;">
+      <span class="lang en">featured article</span><span class="lang zh">精选文章</span>
+      <div class="name"><a href="articles/build-an-agent-loop-in-100-lines.html"><span class="en">Build an Agent Loop in 100 Lines of Python</span><span class="zh">100 行 Python 手写一个 agent loop</span></a></div>
+      <p class="en">A line-by-line walkthrough of a minimal agent: message list, tool dispatch, and termination.</p>
+      <p class="zh">逐段拆解最小 agent：消息列表、工具派发与终止条件。</p>
+      <div class="links"><a href="articles/build-an-agent-loop-in-100-lines.html" class="en">read the article →</a><a href="articles/build-an-agent-loop-in-100-lines.html" class="zh">阅读全文 →</a></div>
+    </div>
+  </header>
+
+  <section class="reveal" id="projects">
+    <h2><span class="n">01</span><span class="en">The projects</span><span class="zh">系列项目</span></h2>
+    <p class="h2-sub en">Agent infrastructure plus focused tools for everyday engineering work.</p>
+    <p class="h2-sub zh">Agent 基础设施，以及面向日常工程任务的专注工具。</p>
+    <div class="grid">
+      <div class="card">
+        <span class="lang">Go</span>
+        <div class="name"><a href="https://github.com/nano-harness/nano-agent">nano-agent</a></div>
+        <p class="en">A lightweight AI coding assistant with agent loops, modular tools, sandboxing, TUI and daemon modes, swarm multi-agent, and MCP.</p>
+        <p class="zh">轻量级 AI 编程助手，包含 agent loop、模块化工具、沙箱、TUI 与 daemon 模式、swarm 多智能体和 MCP。</p>
+        <div class="tags"><span class="tag">agent loop</span><span class="tag">MCP</span><span class="tag">sandbox</span></div>
+        <div class="links"><a href="https://github.com/nano-harness/nano-agent/tree/main/docs">docs →</a><a href="https://github.com/nano-harness/nano-agent/blob/main/docs/architecture/ARCHITECTURE.md">architecture →</a></div>
+      </div>
+      <div class="card">
+        <span class="lang">TypeScript · Bun</span>
+        <div class="name"><a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a></div>
+        <p class="en">Issue-driven orchestration for coding agents with isolated workspaces, plan runs, SQLite state, MCP callbacks, and a web dashboard.</p>
+        <p class="zh">面向 coding agent 的 issue 驱动编排，支持隔离工作区、plan run、SQLite 状态、MCP 回调和 Web 仪表盘。</p>
+        <div class="tags"><span class="tag">orchestration</span><span class="tag">workflow</span><span class="tag">SQLite</span></div>
+        <div class="links"><a href="https://github.com/nano-harness/nano-symphony/tree/main/docs">docs →</a><a href="https://github.com/nano-harness/nano-symphony/blob/main/docs/WORKFLOW-reference.md">workflow reference →</a></div>
+      </div>
+      <div class="card">
+        <span class="lang">Go</span>
+        <div class="name"><a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a></div>
+        <p class="en">Distributed execution for coding agents with gateway/worker architecture, Docker isolation, pairing-based onboarding, and an admin console.</p>
+        <p class="zh">coding agent 的分布式执行，采用 gateway/worker 架构、Docker 隔离、配对接入和管理控制台。</p>
+        <div class="tags"><span class="tag">distributed</span><span class="tag">Docker</span><span class="tag">runtime policy</span></div>
+        <div class="links"><a href="https://github.com/nano-harness/nano-cloud">docs →</a><a href="https://github.com/nano-harness/nano-cloud/blob/main/docs/SECURITY-HARDENING.md">security →</a></div>
+      </div>
+      <div class="card">
+        <span class="lang">Go</span>
+        <div class="name"><a href="https://github.com/nano-harness/impact-analyzer">impact-analyzer</a></div>
+        <p class="en">Multi-language code change impact analysis with call graphs, affected tests, public contract diffs, and risk reports.</p>
+        <p class="zh">多语言代码变更影响分析，提供调用图、受影响测试、公共契约 diff 和风险报告。</p>
+        <div class="tags"><span class="tag">impact analysis</span><span class="tag">call graph</span><span class="tag">CLI</span></div>
+        <div class="links"><a href="https://github.com/nano-harness/impact-analyzer">docs →</a><a href="https://github.com/nano-harness/impact-analyzer/blob/main/docs/orphan-detection.md">orphan detection →</a></div>
+      </div>
+      <div class="card">
+        <span class="lang">Rust</span>
+        <div class="name"><a href="https://github.com/nano-harness/virtual-workspace">virtual-workspace</a></div>
+        <p class="en">Prepare real Git worktree directories for multi-repository workspaces with local and remote sources, diagnostics, and editor integration.</p>
+        <p class="zh">为多仓库工作区准备真实 Git worktree 目录，支持本地与远程源、诊断和编辑器集成。</p>
+        <div class="tags"><span class="tag">Git worktree</span><span class="tag">workspace</span><span class="tag">CLI</span></div>
+        <div class="links"><a href="https://github.com/nano-harness/virtual-workspace">docs →</a><a href="https://github.com/nano-harness/virtual-workspace/blob/main/vws-helper/SKILL.md">agent skill →</a></div>
+      </div>
+      <div class="card">
+        <span class="lang">Rust</span>
+        <div class="name"><a href="https://github.com/nano-harness/sparse-ngram-search">sparse-ngram-search</a></div>
+        <p class="en">Fast, low-memory source-code search with sparse n-grams, inverted indexes, literal and regex queries, and Git-aware incremental overlays.</p>
+        <p class="zh">基于稀疏 n-gram 的快速低内存源码搜索，支持倒排索引、字面量与正则查询，以及 Git 感知的增量 overlay。</p>
+        <div class="tags"><span class="tag">code search</span><span class="tag">n-gram</span><span class="tag">inverted index</span></div>
+        <div class="links"><a href="https://github.com/nano-harness/sparse-ngram-search">docs →</a><a href="https://github.com/nano-harness/sparse-ngram-search/blob/main/sngs-helper/SKILL.md">agent skill →</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="n">02</span><span class="en">One stack, clear boundaries</span><span class="zh">一套技术栈，清晰的边界</span></h2>
+    <p class="h2-sub en">Each layer has a focused responsibility and a readable implementation.</p>
+    <p class="h2-sub zh">每一层都有明确职责和可读实现。</p>
+    <table>
+      <thead><tr><th class="en">Layer</th><th class="zh">分层</th><th class="en">Projects</th><th class="zh">项目</th></tr></thead>
+      <tbody>
+        <tr><td class="f">Agent loop & tools</td><td class="en">Single-agent execution, tools, context, permissions, and MCP.</td><td class="zh">单 agent 执行、工具、上下文、权限和 MCP。</td><td><a href="https://github.com/nano-harness/nano-agent">nano-agent</a></td></tr>
+        <tr><td class="f">Orchestration</td><td class="en">Issue-driven plans, isolated workspaces, retries, and observable runs.</td><td class="zh">issue 驱动计划、隔离工作区、重试和可观测运行。</td><td><a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a></td></tr>
+        <tr><td class="f">Distributed runtime</td><td class="en">Remote execution with container isolation and runtime policies.</td><td class="zh">容器隔离与运行策略驱动的远程执行。</td><td><a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a></td></tr>
+        <tr><td class="f">Engineering tools</td><td class="en">Change analysis, workspace preparation, and fast code search.</td><td class="zh">变更分析、工作区准备和快速代码搜索。</td><td><a href="https://github.com/nano-harness/impact-analyzer">impact-analyzer</a> · <a href="https://github.com/nano-harness/virtual-workspace">virtual-workspace</a> · <a href="https://github.com/nano-harness/sparse-ngram-search">sparse-ngram-search</a></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="reveal" id="path">
+    <h2><span class="n">03</span><span class="en">Build from source</span><span class="zh">从源码开始</span></h2>
+    <p class="h2-sub en">Every project can be cloned, built, and tested locally without a hosted release service.</p>
+    <p class="h2-sub zh">所有项目都可以本地克隆、构建和测试，不依赖托管发布服务。</p>
+    <ol class="path">
+      <li class="en">Start with the <a href="articles/build-an-agent-loop-in-100-lines.html">minimal agent-loop article</a>, then explore <a href="https://github.com/nano-harness/nano-agent">nano-agent</a>.</li>
+      <li class="zh">先阅读<a href="articles/build-an-agent-loop-in-100-lines.html">最小 agent loop 文章</a>，再探索 <a href="https://github.com/nano-harness/nano-agent">nano-agent</a>。</li>
+      <li class="en">Add <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a> for issue-driven workflows and <a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a> for distributed execution.</li>
+      <li class="zh">使用 <a href="https://github.com/nano-harness/nano-symphony">nano-symphony</a> 编排 issue 工作流，使用 <a href="https://github.com/nano-harness/nano-cloud">nano-cloud</a> 分布式执行。</li>
+      <li class="en">Use <a href="https://github.com/nano-harness/impact-analyzer">impact-analyzer</a>, <a href="https://github.com/nano-harness/virtual-workspace">virtual-workspace</a>, and <a href="https://github.com/nano-harness/sparse-ngram-search">sparse-ngram-search</a> as independent tools or agent primitives.</li>
+      <li class="zh">将 <a href="https://github.com/nano-harness/impact-analyzer">impact-analyzer</a>、<a href="https://github.com/nano-harness/virtual-workspace">virtual-workspace</a> 和 <a href="https://github.com/nano-harness/sparse-ngram-search">sparse-ngram-search</a> 作为独立工具或 agent 基础能力。</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p class="en"><strong>About / Contact</strong> — Maintained by the <a href="https://github.com/nano-harness">nano-harness</a> organization. Issues and pull requests are welcome across the nano repositories.</p>
+    <p class="zh"><strong>关于 / 联系</strong>——由 <a href="https://github.com/nano-harness">nano-harness</a> 组织维护。欢迎通过各 nano 仓库的 issue 和 pull request 提问或贡献。</p>
+    <p style="margin-top:14px"><a href="https://github.com/nano-harness">github.com/nano-harness</a> · <a href="https://github.com/nano-harness/nano-harness.github.io/blob/main/LICENSE">MIT License</a></p>
+  </footer>
+</div>
+
+<script>
+function toggleLang(btn) {
+  const zh = document.body.classList.toggle('zh');
+  document.documentElement.lang = zh ? 'zh-CN' : 'en';
+  btn.textContent = zh ? 'EN' : '中文';
+}
+const SCRIPT = [
+  { t: 'cmd',  text: '$ nano-agent "fix the flaky test in pkg/swarm"', type: true },
+  { t: 'think', text: '● thinking — 3.2k tokens', d: 900 },
+  { t: 'tool', text: '▸ read  pkg/swarm/hook_dispatcher_test.go', d: 700 },
+  { t: 'tool', text: '▸ edit  pkg/swarm/hook_dispatcher.go  (+14 −3)', d: 800 },
+  { t: 'tool', text: '▸ run   go test ./pkg/swarm — ok, 4.5s', d: 900 },
+  { t: 'ok',   text: '✓ task done · 2 files changed · 38s', d: 2600 },
+];
+const term = document.getElementById('term');
+const cls = { cmd: 't-cmd', think: 't-think', tool: 't-tool', ok: 't-ok' };
+function runTerm() {
+  term.innerHTML = '';
+  let i = 0;
+  function next() {
+    if (i >= SCRIPT.length) { setTimeout(runTerm, 3200); return; }
+    const step = SCRIPT[i++];
+    const line = document.createElement('div');
+    line.className = cls[step.t];
+    term.appendChild(line);
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    term.appendChild(cursor);
+    if (step.type) {
+      let j = 0;
+      (function typeChar() {
+        if (j <= step.text.length) {
+          line.textContent = step.text.slice(0, j++);
+          setTimeout(typeChar, 34 + Math.random() * 40);
+        } else {
+          cursor.remove();
+          setTimeout(next, 350);
+        }
+      })();
+    } else {
+      line.textContent = step.text;
+      cursor.remove();
+      setTimeout(next, step.d || 700);
+    }
+  }
+  next();
+}
+runTerm();
+const io = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
